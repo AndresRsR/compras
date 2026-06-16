@@ -452,6 +452,22 @@
     .form-grid .span-4 {
       grid-column: 1 / -1;
     }
+    .provider-picker {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 38px auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .provider-picker .btn {
+      min-height: 42px;
+    }
+
+    .provider-picker #addProviderBtn {
+      padding-left: 0;
+      padding-right: 0;
+      font-size: 1rem;
+    }
 
     .purchase-lines-field {
       gap: 10px;
@@ -1151,7 +1167,6 @@
         </div>
         <div class="toolbar">
           <button class="btn soft" data-tab-jump="form" type="button">Crear compra</button>
-          <button class="btn secondary" id="restoreExamplesBtn" type="button">Datos de ejemplo</button>
         </div>
       </div>
       <div class="filters">
@@ -1238,9 +1253,13 @@
           <span class="pill">Soles a dólares</span>
         </div>
         <div class="form-grid">
-          <div class="field">
+          <div class="field provider-field">
             <label for="proveedor">Proveedor</label>
-            <input id="proveedor" list="proveedoresList" required placeholder="Ej. Galeria San Pedro" />
+            <div class="provider-picker">
+              <input id="proveedor" list="proveedoresList" required placeholder="Ej. Galeria San Pedro" />
+              <button class="btn small soft" id="addProviderBtn" type="button" title="Agregar proveedor al selector">+</button>
+              <button class="btn small secondary" id="removeProviderBtn" type="button" title="Eliminar proveedor seleccionado">Eliminar</button>
+            </div>
             <datalist id="proveedoresList"></datalist>
           </div>
           <div class="field">
@@ -1622,6 +1641,7 @@
     ];
     const state = {
       purchases: [],
+      providers: [],
       activeId: null,
       search: "",
       status: "todos"
@@ -1816,11 +1836,51 @@
       syncPurchaseTotals();
     }
 
+    function isLegacySamplePurchase(purchase) {
+      return ["NEO-0001", "NEO-0002", "NEO-0003", "NEO-0004"].includes(purchase.id);
+    }
+
+    function rememberProvider(value, persist = true) {
+      const provider = cleanText(value);
+      if (!provider) return false;
+      const exists = state.providers.some((item) => item.toLowerCase() === provider.toLowerCase());
+      if (!exists) state.providers.push(provider);
+      state.providers = uniqueClean(state.providers).sort((a, b) => a.localeCompare(b, "es"));
+      refreshLookupLists();
+      if (persist && !exists) saveData();
+      return !exists;
+    }
+
+    function addProviderFromInput() {
+      const provider = cleanText($("#proveedor").value);
+      if (!provider) {
+        toast("Escribe el nombre del proveedor para agregarlo.");
+        $("#proveedor").focus();
+        return;
+      }
+      const added = rememberProvider(provider, true);
+      toast(added ? "Proveedor agregado." : "Ese proveedor ya estaba en la lista.");
+    }
+
+    function removeProviderFromInput() {
+      const provider = cleanText($("#proveedor").value);
+      if (!provider) {
+        toast("Selecciona o escribe el proveedor que quieres eliminar.");
+        $("#proveedor").focus();
+        return;
+      }
+      const before = state.providers.length;
+      state.providers = state.providers.filter((item) => item.toLowerCase() !== provider.toLowerCase());
+      refreshLookupLists();
+      saveData();
+      toast(before === state.providers.length ? "Ese proveedor no estaba guardado." : "Proveedor eliminado del selector.");
+    }
+
     function refreshLookupLists() {
       const providerList = $("#proveedoresList");
       const categoryList = $("#categoriasList");
       if (providerList) {
-        providerList.innerHTML = uniqueClean(state.purchases.map((purchase) => purchase.proveedor))
+        providerList.innerHTML = uniqueClean(state.providers)
           .map((value) => `<option value="${escapeHtml(value)}"></option>`)
           .join("");
       }
@@ -1830,6 +1890,7 @@
           .join("");
       }
     }
+
     function downloadFile(filename, content, type) {
       const blob = new Blob([content], { type });
       const url = URL.createObjectURL(blob);
@@ -1854,180 +1915,7 @@
     }
 
     function samplePurchases() {
-      return [
-        {
-          id: "NEO-0001",
-          proveedor: "Gamarra Moda Center",
-          prenda: "Blusa satinada manga larga",
-          categoria: "Blusas",
-          color: "Rosado pastel",
-          talla: "S, M, L",
-          cantidad: 36,
-          costoUnitarioSoles: 24.5,
-          tipoCambioCompra: 3.75,
-          totalSoles: 882,
-          totalDolares: 235.2,
-          fechaCompra: "2026-06-03",
-          estadoCompra: "completado",
-          observaciones: "Buen acabado, revisar botones antes de exhibir.",
-          envio: {
-            fechaEnvio: "2026-06-05",
-            empresaTransporte: "Shalom",
-            numeroGuia: "SH-884219",
-            costoEnvioSoles: 48,
-            tipoCambioEnvio: 3.76,
-            costoEnvioDolares: 12.77,
-            estadoLinea: "completado",
-            observaciones: "Caja mediana, llega a oficina principal."
-          },
-          llegada: {
-            fechaLlegada: "2026-06-08",
-            cantidadEsperada: 36,
-            cantidadRecibida: 36,
-            diferencia: 0,
-            estado: "correcto",
-            observaciones: "Recepción completa."
-          },
-          transactions: [
-            {
-              id: "TX-1001",
-              fecha: "2026-06-03",
-              tipo: "Pago de compra",
-              montoSoles: 882,
-              tipoCambio: 3.75,
-              montoDolares: 235.2,
-              metodoPago: "Transferencia",
-              referencia: "OP-5412",
-              observacion: "Pago total al proveedor."
-            },
-            {
-              id: "TX-1002",
-              fecha: "2026-06-05",
-              tipo: "Pago de envío",
-              montoSoles: 48,
-              tipoCambio: 3.76,
-              montoDolares: 12.77,
-              metodoPago: "Efectivo",
-              referencia: "Guía SH-884219",
-              observacion: "Transporte Lima a Ecuador."
-            }
-          ],
-          createdAt: "2026-06-03T10:00:00.000Z",
-          updatedAt: "2026-06-08T15:30:00.000Z"
-        },
-        {
-          id: "NEO-0002",
-          proveedor: "Textiles La Victoria",
-          prenda: "Jean recto tiro alto",
-          categoria: "Jeans",
-          color: "Azul medio",
-          talla: "28, 30, 32",
-          cantidad: 24,
-          costoUnitarioSoles: 39,
-          tipoCambioCompra: 3.74,
-          totalSoles: 936,
-          totalDolares: 250.27,
-          fechaCompra: "2026-06-09",
-          estadoCompra: "completado",
-          observaciones: "Proveedor pidió confirmar stock de talla 32.",
-          envio: {
-            fechaEnvio: "2026-06-11",
-            empresaTransporte: "Marvisur",
-            numeroGuia: "MV-233910",
-            costoEnvioSoles: 62,
-            tipoCambioEnvio: 3.75,
-            costoEnvioDolares: 16.53,
-            estadoLinea: "proceso",
-            observaciones: "En tránsito."
-          },
-          llegada: null,
-          transactions: [
-            {
-              id: "TX-1003",
-              fecha: "2026-06-09",
-              tipo: "Pago de compra",
-              montoSoles: 500,
-              tipoCambio: 3.74,
-              montoDolares: 133.69,
-              metodoPago: "Transferencia",
-              referencia: "Anticipo",
-              observacion: "Saldo pendiente contra entrega."
-            }
-          ],
-          createdAt: "2026-06-09T12:00:00.000Z",
-          updatedAt: "2026-06-11T12:30:00.000Z"
-        },
-        {
-          id: "NEO-0003",
-          proveedor: "Fashion Gamarra 128",
-          prenda: "Vestido lino botones",
-          categoria: "Vestidos",
-          color: "Beige",
-          talla: "Única",
-          cantidad: 18,
-          costoUnitarioSoles: 45,
-          tipoCambioCompra: 3.73,
-          totalSoles: 810,
-          totalDolares: 217.16,
-          fechaCompra: "2026-06-12",
-          estadoCompra: "completado",
-          observaciones: "Compra lista para coordinar envío.",
-          envio: null,
-          llegada: null,
-          transactions: [],
-          createdAt: "2026-06-12T09:00:00.000Z",
-          updatedAt: "2026-06-12T09:00:00.000Z"
-        },
-        {
-          id: "NEO-0004",
-          proveedor: "Confecciones Milagros",
-          prenda: "Conjunto chaleco y pantalón",
-          categoria: "Conjuntos",
-          color: "Negro",
-          talla: "M, L",
-          cantidad: 20,
-          costoUnitarioSoles: 58,
-          tipoCambioCompra: 3.76,
-          totalSoles: 1160,
-          totalDolares: 308.51,
-          fechaCompra: "2026-06-01",
-          estadoCompra: "completado",
-          observaciones: "Separar las unidades con costura irregular.",
-          envio: {
-            fechaEnvio: "2026-06-02",
-            empresaTransporte: "Olva Courier",
-            numeroGuia: "OL-771902",
-            costoEnvioSoles: 55,
-            tipoCambioEnvio: 3.76,
-            costoEnvioDolares: 14.63,
-            estadoLinea: "completado",
-            observaciones: "Entrega regular."
-          },
-          llegada: {
-            fechaLlegada: "2026-06-06",
-            cantidadEsperada: 20,
-            cantidadRecibida: 18,
-            diferencia: -2,
-            estado: "faltante",
-            observaciones: "Faltan dos pantalones talla L."
-          },
-          transactions: [
-            {
-              id: "TX-1004",
-              fecha: "2026-06-10",
-              tipo: "Devolución",
-              montoSoles: 116,
-              tipoCambio: 3.76,
-              montoDolares: 30.85,
-              metodoPago: "Transferencia",
-              referencia: "DEV-19",
-              observacion: "Descuento por faltante."
-            }
-          ],
-          createdAt: "2026-06-01T08:00:00.000Z",
-          updatedAt: "2026-06-10T16:20:00.000Z"
-        }
-      ];
+      return [];
     }
 
     function autoArrivalState(expected, received, currentState = "") {
@@ -2201,8 +2089,9 @@
     function loadData() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
-        state.purchases = samplePurchases().map(normalizePurchase);
-        state.activeId = state.purchases[0]?.id || null;
+        state.purchases = [];
+        state.providers = [];
+        state.activeId = null;
         saveData();
         return;
       }
@@ -2210,21 +2099,31 @@
       try {
         const parsed = JSON.parse(raw);
         const purchases = Array.isArray(parsed) ? parsed : parsed.purchases;
-        state.purchases = Array.isArray(purchases) ? purchases.map(normalizePurchase) : samplePurchases();
+        const rawPurchases = Array.isArray(purchases) ? purchases.map(normalizePurchase) : [];
+        const cleanLegacyExamples = !Array.isArray(parsed) && (!parsed.version || parsed.version < 2);
+        state.purchases = rawPurchases.filter((purchase) => !cleanLegacyExamples || !isLegacySamplePurchase(purchase));
+        state.providers = uniqueClean([
+          ...(!Array.isArray(parsed) && Array.isArray(parsed.providers) ? parsed.providers : []),
+          ...state.purchases.map((purchase) => purchase.proveedor)
+        ]).sort((a, b) => a.localeCompare(b, "es"));
         state.activeId = state.purchases[0]?.id || null;
+        if (state.purchases.length !== rawPurchases.length || !parsed.providers) saveData();
       } catch (error) {
         console.error(error);
-        state.purchases = samplePurchases().map(normalizePurchase);
-        state.activeId = state.purchases[0]?.id || null;
-        toast("Se cargaron datos de ejemplo porque el almacenamiento estaba dañado.");
+        state.purchases = [];
+        state.providers = [];
+        state.activeId = null;
+        saveData();
+        toast("Se limpio el almacenamiento porque estaba danado.");
       }
     }
 
     function saveData() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        app: "Gestión de Compras NEOMAR",
-        version: 1,
+        app: "Gestion de Compras NEOMAR",
+        version: 2,
         savedAt: new Date().toISOString(),
+        providers: state.providers,
         purchases: state.purchases
       }));
     }
@@ -2797,6 +2696,7 @@
       const existing = editId ? getPurchase(editId) : null;
       const purchase = buildPurchaseFromForm(existing);
       if (!purchase) return;
+      rememberProvider(purchase.proveedor, false);
 
       if (existing) {
         state.purchases = state.purchases.map((item) => item.id === editId ? purchase : item);
@@ -3229,13 +3129,15 @@
     }
 
     function restoreExamples() {
-      const ok = confirm("Esto reemplazará las compras actuales por datos de ejemplo. ¿Continuar?");
+      const ok = confirm("Esto borrara las compras y proveedores guardados. ¿Continuar?");
       if (!ok) return;
-      state.purchases = samplePurchases().map(normalizePurchase);
-      state.activeId = state.purchases[0]?.id || null;
+      state.purchases = [];
+      state.providers = [];
+      state.activeId = null;
       saveData();
+      resetPurchaseForm();
       renderAll();
-      toast("Datos de ejemplo restaurados.");
+      toast("Datos borrados.");
     }
 
     function handleDocumentClick(event) {
@@ -3300,6 +3202,8 @@
       });
       $("#purchaseForm").addEventListener("submit", savePurchaseFromForm);
       $("#clearFormBtn").addEventListener("click", resetPurchaseForm);
+      $("#addProviderBtn").addEventListener("click", addProviderFromInput);
+      $("#removeProviderBtn").addEventListener("click", removeProviderFromInput);
       $("#addPurchaseLineBtn").addEventListener("click", addQuickPurchaseLine);
       ["#quickColor", "#quickTalla", "#quickQty"].forEach((selector) => {
         $(selector).addEventListener("keydown", (event) => {
@@ -3343,7 +3247,7 @@
       $("#exportCsvBtn").addEventListener("click", exportCsv);
       $("#importJsonBtn").addEventListener("click", () => $("#importFile").click());
       $("#importFile").addEventListener("change", (event) => importJsonFile(event.target.files[0]));
-      $("#restoreExamplesBtn").addEventListener("click", restoreExamples);
+      if ($("#restoreExamplesBtn")) $("#restoreExamplesBtn").addEventListener("click", restoreExamples);
       $("#searchInput").addEventListener("input", (event) => {
         state.search = event.target.value;
         renderPurchasesTable();
