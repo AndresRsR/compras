@@ -484,13 +484,20 @@
     }
 
     .status-badge.pendiente,
-    .timeline-dot.pendiente {
+    .status-badge.pedido,
+    .timeline-dot.pendiente,
+    .timeline-dot.pedido {
       background: var(--pending-bg);
       color: var(--pending);
     }
 
     .status-badge.enviada,
+    .status-badge.transferido,
+    .status-badge.pagado,
     .status-badge.proceso,
+    .timeline-dot.enviada,
+    .timeline-dot.transferido,
+    .timeline-dot.pagado,
     .timeline-dot.proceso {
       background: var(--process-bg);
       color: var(--process);
@@ -498,6 +505,7 @@
 
     .status-badge.recibida,
     .status-badge.completado,
+    .timeline-dot.recibida,
     .timeline-dot.completado {
       background: var(--complete-bg);
       color: var(--complete);
@@ -881,6 +889,11 @@
       .filters {
         grid-template-columns: 1fr;
       }
+
+      .purchase-line-row,
+      .purchase-line-labels {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1021,9 +1034,11 @@
           <label for="statusFilter">Estado</label>
           <select id="statusFilter">
             <option value="todos">Todos</option>
-            <option value="pendiente">Pendientes</option>
-            <option value="enviada">Enviadas</option>
-            <option value="recibida">Recibidas</option>
+            <option value="pedido">Pedidos</option>
+            <option value="transferido">Transferidos</option>
+            <option value="pagado">Pagados</option>
+            <option value="enviada">Enviados</option>
+            <option value="recibida">Recibidos</option>
             <option value="problema">Con problemas</option>
           </select>
         </div>
@@ -1096,7 +1111,8 @@
         <div class="form-grid">
           <div class="field">
             <label for="proveedor">Proveedor</label>
-            <input id="proveedor" required placeholder="Ej. Galería San Pedro" />
+            <input id="proveedor" list="proveedoresList" required placeholder="Ej. Galeria San Pedro" />
+            <datalist id="proveedoresList"></datalist>
           </div>
           <div class="field">
             <label for="prenda">Prenda</label>
@@ -1105,36 +1121,39 @@
           <div class="field">
             <label for="categoria">Categoría</label>
             <input id="categoria" list="categoriasList" required placeholder="Ej. Blusas" />
-            <datalist id="categoriasList">
-              <option value="Blusas"></option>
-              <option value="Vestidos"></option>
-              <option value="Jeans"></option>
-              <option value="Conjuntos"></option>
-              <option value="Faldas"></option>
-              <option value="Básicos"></option>
-              <option value="Accesorios"></option>
-            </datalist>
+            <datalist id="categoriasList"></datalist>
           </div>
           <div class="field">
             <label for="estadoCompra">Estado compra</label>
             <select id="estadoCompra">
-              <option value="completado">Completada</option>
-              <option value="proceso">En proceso</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="problema">Con problema</option>
+              <option value="pedido">Pedido</option>
+              <option value="transferido">Transferido</option>
+              <option value="pagado">Pagado</option>
+              <option value="enviada">Enviado</option>
+              <option value="recibida">Recibido</option>
             </select>
           </div>
-          <div class="field">
-            <label for="color">Color</label>
-            <input id="color" placeholder="Ej. Rosado" />
-          </div>
-          <div class="field">
-            <label for="talla">Talla</label>
-            <input id="talla" placeholder="Ej. S, M, L" />
-          </div>
-          <div class="field">
-            <label for="cantidad">Cantidad comprada</label>
-            <input id="cantidad" type="number" min="1" step="1" required />
+          <div class="field span-4 purchase-lines-field">
+            <div class="purchase-lines-head">
+              <label>Colores / tallas / cantidad comprada</label>
+              <button class="btn small soft" id="addPurchaseLineBtn" type="button">+ Agregar color</button>
+            </div>
+            <div class="purchase-lines">
+              <div class="purchase-line-labels">
+                <span>Color</span>
+                <span>Talla</span>
+                <span>Cantidad</span>
+                <span></span>
+              </div>
+              <div id="purchaseLinesBody"></div>
+              <div class="purchase-line-total">
+                <span>Total comprado</span>
+                <strong id="purchaseLinesTotal">0 unidades</strong>
+              </div>
+            </div>
+            <input id="color" type="hidden" />
+            <input id="talla" type="hidden" />
+            <input id="cantidad" type="hidden" />
           </div>
           <div class="field">
             <label for="costoUnitarioSoles">Costo unitario S/</label>
@@ -1426,7 +1445,23 @@
   <script>
     const STORAGE_KEY = "neomar_compras_v1";
     const DEFAULT_RATE = 3.75;
-
+    const DEFAULT_CATEGORIES = [
+      "Blusas",
+      "Vestidos",
+      "Jeans",
+      "Conjuntos",
+      "Faldas",
+      "Shorts",
+      "Chaquetas",
+      "Enterizos",
+      "Pantalones",
+      "Chalecos",
+      "Gabardinas",
+      "Tops",
+      "Carteras",
+      "Basicos",
+      "Accesorios"
+    ];
     const state = {
       purchases: [],
       activeId: null,
@@ -1484,6 +1519,134 @@
       return `NEO-${String(nextNumber).padStart(4, "0")}`;
     }
 
+    function cleanText(value) {
+      return String(value ?? "").trim();
+    }
+
+    function uniqueClean(values) {
+      const seen = new Set();
+      return values
+        .map(cleanText)
+        .filter(Boolean)
+        .filter((value) => {
+          const key = value.toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    }
+
+    function normalizePurchaseStatus(status) {
+      const value = cleanText(status).toLowerCase();
+      return {
+        completado: "pagado",
+        completa: "pagado",
+        completada: "pagado",
+        proceso: "transferido",
+        pendiente: "pedido",
+        enviado: "enviada",
+        enviada: "enviada",
+        recibido: "recibida",
+        recibida: "recibida",
+        pedido: "pedido",
+        transferido: "transferido",
+        pagado: "pagado",
+        problema: "problema"
+      }[value] || "pedido";
+    }
+
+    function normalizePurchaseItem(purchase, item = {}, index = 0) {
+      const cantidad = numberValue(item.cantidad ?? item.cantidadComprada ?? item.cantidadEsperada ?? (index === 0 ? purchase.cantidad : 0));
+      return {
+        id: item.id || `${purchase.id || "LINE"}-ITEM-${index + 1}`,
+        color: cleanText(item.color || purchase.color || ""),
+        talla: cleanText(item.talla || purchase.talla || ""),
+        cantidad
+      };
+    }
+
+    function purchaseItemsFromPurchase(purchase) {
+      const source = Array.isArray(purchase.items) && purchase.items.length
+        ? purchase.items
+        : Array.isArray(purchase.lineas) && purchase.lineas.length
+          ? purchase.lineas
+          : [];
+      const items = source.length
+        ? source.map((item, index) => normalizePurchaseItem(purchase, item, index))
+        : [normalizePurchaseItem(purchase, {
+            color: purchase.color,
+            talla: purchase.talla,
+            cantidad: purchase.cantidad
+          }, 0)];
+      return items.filter((item) => item.color || item.talla || numberValue(item.cantidad) > 0);
+    }
+
+    function summarizePurchaseItems(items) {
+      const valid = items.filter((item) => numberValue(item.cantidad) > 0);
+      return {
+        cantidad: valid.reduce((sum, item) => sum + numberValue(item.cantidad), 0),
+        color: uniqueClean(valid.map((item) => item.color)).join(", "),
+        talla: uniqueClean(valid.map((item) => item.talla)).join(", ")
+      };
+    }
+
+    function purchaseLineTotalQuantity() {
+      return $$("#purchaseLinesBody .purchase-line-qty")
+        .reduce((sum, input) => sum + numberValue(input.value), 0);
+    }
+
+    function getPurchaseLinesFromForm() {
+      return $$("#purchaseLinesBody .purchase-line-row").map((row, index) => ({
+        id: row.dataset.id || `${$("#purchaseEditId").value || "NEW"}-ITEM-${index + 1}`,
+        color: row.querySelector(".purchase-line-color").value.trim(),
+        talla: row.querySelector(".purchase-line-talla").value.trim(),
+        cantidad: Math.max(0, Math.trunc(numberValue(row.querySelector(".purchase-line-qty").value)))
+      })).filter((item) => item.color || item.talla || item.cantidad > 0);
+    }
+
+    function purchaseLineRowHtml(item = {}, index = 0) {
+      return `
+        <div class="purchase-line-row" data-id="${escapeHtml(item.id || "")}">
+          <input class="purchase-line-color" value="${escapeHtml(item.color || "")}" placeholder="Ej. Rosado" />
+          <input class="purchase-line-talla" value="${escapeHtml(item.talla || "")}" placeholder="Ej. S, M, L" />
+          <input class="purchase-line-qty" type="number" min="0" step="1" value="${escapeHtml(item.cantidad ?? (index === 0 ? 1 : 0))}" />
+          <button class="btn small secondary" type="button" data-remove-purchase-line aria-label="Eliminar color">x</button>
+        </div>
+      `;
+    }
+
+    function renderPurchaseLines(lines = []) {
+      const body = $("#purchaseLinesBody");
+      if (!body) return;
+      const items = lines.length ? lines : [{ color: "", talla: "", cantidad: 1 }];
+      body.innerHTML = items.map(purchaseLineRowHtml).join("");
+      syncPurchaseLineSummary();
+    }
+
+    function syncPurchaseLineSummary() {
+      const items = getPurchaseLinesFromForm();
+      const summary = summarizePurchaseItems(items);
+      $("#color").value = summary.color;
+      $("#talla").value = summary.talla;
+      $("#cantidad").value = summary.cantidad;
+      $("#purchaseLinesTotal").textContent = `${summary.cantidad} ${summary.cantidad === 1 ? "unidad" : "unidades"}`;
+      syncPurchaseTotals();
+    }
+
+    function refreshLookupLists() {
+      const providerList = $("#proveedoresList");
+      const categoryList = $("#categoriasList");
+      if (providerList) {
+        providerList.innerHTML = uniqueClean(state.purchases.map((purchase) => purchase.proveedor))
+          .map((value) => `<option value="${escapeHtml(value)}"></option>`)
+          .join("");
+      }
+      if (categoryList) {
+        categoryList.innerHTML = uniqueClean([...DEFAULT_CATEGORIES, ...state.purchases.map((purchase) => purchase.categoria)])
+          .map((value) => `<option value="${escapeHtml(value)}"></option>`)
+          .join("");
+      }
+    }
     function downloadFile(filename, content, type) {
       const blob = new Blob([content], { type });
       const url = URL.createObjectURL(blob);
@@ -1693,7 +1856,7 @@
     }
 
     function normalizeArrivalItem(purchase, item = {}, index = 0) {
-      const cantidadComprada = numberValue(item.cantidadComprada ?? item.cantidadEsperada ?? purchase.cantidad);
+      const cantidadComprada = numberValue(item.cantidadComprada ?? item.cantidadEsperada ?? item.cantidad ?? purchase.cantidad);
       const cantidadRecibida = numberValue(item.cantidadRecibida ?? item.recibida ?? cantidadComprada);
       const estado = autoArrivalState(cantidadComprada, cantidadRecibida, item.estado);
 
@@ -1715,6 +1878,18 @@
         return llegada.items.map((item, index) => normalizeArrivalItem(purchase, item, index));
       }
 
+      const purchaseItems = Array.isArray(purchase.items) && purchase.items.length
+        ? purchase.items
+        : purchaseItemsFromPurchase(purchase);
+
+      if (!llegada && purchaseItems.length) {
+        return purchaseItems.map((item, index) => normalizeArrivalItem(purchase, {
+          ...item,
+          cantidadComprada: item.cantidad,
+          cantidadRecibida: item.cantidad
+        }, index));
+      }
+
       if (!llegada) {
         return [normalizeArrivalItem(purchase, {
           cantidadComprada: purchase.cantidad,
@@ -1722,12 +1897,20 @@
         }, 0)];
       }
 
-      return [normalizeArrivalItem(purchase, {
-        cantidadComprada: llegada.cantidadEsperada ?? purchase.cantidad,
-        cantidadRecibida: llegada.cantidadRecibida ?? purchase.cantidad,
-        estado: llegada.estado,
-        observacion: llegada.observaciones
-      }, 0)];
+      return purchaseItems.length
+        ? purchaseItems.map((item, index) => normalizeArrivalItem(purchase, {
+            ...item,
+            cantidadComprada: item.cantidad,
+            cantidadRecibida: llegada.cantidadRecibida ?? item.cantidad,
+            estado: llegada.estado,
+            observacion: llegada.observaciones
+          }, index))
+        : [normalizeArrivalItem(purchase, {
+            cantidadComprada: llegada.cantidadEsperada ?? purchase.cantidad,
+            cantidadRecibida: llegada.cantidadRecibida ?? purchase.cantidad,
+            estado: llegada.estado,
+            observacion: llegada.observaciones
+          }, 0)];
     }
 
     function summarizeArrivalItems(items) {
@@ -1750,19 +1933,23 @@
     }
 
     function normalizePurchase(purchase) {
-      const cantidad = numberValue(purchase.cantidad);
-      const costoUnitarioSoles = numberValue(purchase.costoUnitarioSoles);
+      const normalizedId = purchase.id || makeId();
+      const status = normalizePurchaseStatus(purchase.estadoCompra);
       const tipoCambioCompra = numberValue(purchase.tipoCambioCompra) || DEFAULT_RATE;
+      const costoUnitarioSoles = numberValue(purchase.costoUnitarioSoles);
+      const items = purchaseItemsFromPurchase({ ...purchase, id: normalizedId });
+      const itemSummary = summarizePurchaseItems(items);
+      const cantidad = itemSummary.cantidad || numberValue(purchase.cantidad);
       const totalSoles = round2(cantidad * costoUnitarioSoles);
       const totalDolares = round2(totalSoles / tipoCambioCompra);
-      const normalizedId = purchase.id || makeId();
       const baseForArrival = {
         ...purchase,
         id: normalizedId,
         prenda: purchase.prenda || "",
-        color: purchase.color || "",
-        talla: purchase.talla || "",
-        cantidad
+        color: itemSummary.color || purchase.color || "",
+        talla: itemSummary.talla || purchase.talla || "",
+        cantidad,
+        items
       };
       const envio = purchase.envio ? {
         fechaEnvio: purchase.envio.fechaEnvio || "",
@@ -1791,16 +1978,17 @@
         proveedor: purchase.proveedor || "",
         prenda: purchase.prenda || "",
         categoria: purchase.categoria || "",
-        color: purchase.color || "",
-        talla: purchase.talla || "",
+        color: itemSummary.color || purchase.color || "",
+        talla: itemSummary.talla || purchase.talla || "",
         cantidad,
         costoUnitarioSoles,
         tipoCambioCompra,
         totalSoles,
         totalDolares,
         fechaCompra: purchase.fechaCompra || today(),
-        estadoCompra: purchase.estadoCompra || "completado",
+        estadoCompra: status,
         observaciones: purchase.observaciones || "",
+        items,
         envio,
         llegada,
         transactions: Array.isArray(purchase.transactions)
@@ -1870,14 +2058,17 @@
       if (purchase.envio?.fechaEnvio) {
         return purchase.envio.estadoLinea === "problema" ? "problema" : "enviada";
       }
-      return "pendiente";
+      return normalizePurchaseStatus(purchase.estadoCompra);
     }
 
     function statusLabel(status) {
       return {
+        pedido: "Pedido",
+        transferido: "Transferido",
+        pagado: "Pagado",
+        enviada: "Enviado",
+        recibida: "Recibido",
         pendiente: "Pendiente",
-        enviada: "Enviada",
-        recibida: "Recibida",
         problema: "Con problema",
         proceso: "En proceso",
         completado: "Completado"
@@ -1966,7 +2157,7 @@
       const statusCounts = state.purchases.reduce((counts, purchase) => {
         counts[currentStatus(purchase)] += 1;
         return counts;
-      }, { pendiente: 0, enviada: 0, recibida: 0, problema: 0 });
+      }, { pedido: 0, transferido: 0, pagado: 0, enviada: 0, recibida: 0, problema: 0 });
 
       return {
         total: state.purchases.length,
@@ -1982,10 +2173,12 @@
         ["Total de compras", stats.total, ""],
         ["Total invertido S/", currency(stats.soles, "S/"), "accent"],
         ["Total convertido USD", currency(stats.dollars, "$"), "accent"],
-        ["Compras pendientes", stats.pendiente, ""],
-        ["Compras enviadas", stats.enviada, ""],
-        ["Compras recibidas", stats.recibida, ""],
-        ["Compras con problemas", stats.problema, ""]
+        ["Pedidos", stats.pedido, ""],
+        ["Transferidos", stats.transferido, ""],
+        ["Pagados", stats.pagado, ""],
+        ["Enviados", stats.enviada, ""],
+        ["Recibidos", stats.recibida, ""],
+        ["Con problemas", stats.problema, ""]
       ];
 
       $("#metrics").innerHTML = metrics.map(([label, value, accent]) => `
@@ -2241,6 +2434,7 @@
     }
 
     function renderAll() {
+      refreshLookupLists();
       renderMetrics();
       renderPurchasesTable();
       renderCorroborationTable();
@@ -2259,7 +2453,7 @@
     }
 
     function syncPurchaseTotals() {
-      const cantidad = numberValue($("#cantidad").value);
+      const cantidad = purchaseLineTotalQuantity() || numberValue($("#cantidad").value);
       const costo = numberValue($("#costoUnitarioSoles").value);
       const rate = numberValue($("#tipoCambioCompra").value);
       const totalSoles = round2(cantidad * costo);
@@ -2350,10 +2544,10 @@
       $("#purchaseForm").reset();
       $("#purchaseEditId").value = "";
       $("#formTitle").textContent = "Registrar compra";
-      $("#cantidad").value = 1;
       $("#tipoCambioCompra").value = DEFAULT_RATE;
-      $("#estadoCompra").value = "completado";
+      $("#estadoCompra").value = "pedido";
       $("#fechaCompra").value = today();
+      renderPurchaseLines([{ color: "", talla: "", cantidad: 1 }]);
       syncPurchaseTotals();
     }
 
@@ -2362,13 +2556,11 @@
       $("#proveedor").value = purchase.proveedor;
       $("#prenda").value = purchase.prenda;
       $("#categoria").value = purchase.categoria;
-      $("#color").value = purchase.color;
-      $("#talla").value = purchase.talla;
-      $("#cantidad").value = purchase.cantidad;
+      renderPurchaseLines(purchase.items?.length ? purchase.items : purchaseItemsFromPurchase(purchase));
       $("#costoUnitarioSoles").value = purchase.costoUnitarioSoles;
       $("#tipoCambioCompra").value = purchase.tipoCambioCompra;
       $("#fechaCompra").value = purchase.fechaCompra;
-      $("#estadoCompra").value = purchase.estadoCompra || "completado";
+      $("#estadoCompra").value = normalizePurchaseStatus(purchase.estadoCompra);
       $("#observaciones").value = purchase.observaciones;
       $("#formTitle").textContent = `Editar compra ${purchase.id}`;
       syncPurchaseTotals();
@@ -2376,19 +2568,25 @@
     }
 
     function buildPurchaseFromForm(existing) {
-      const cantidad = numberValue($("#cantidad").value);
+      const items = getPurchaseLinesFromForm();
+      const itemSummary = summarizePurchaseItems(items);
+      if (!itemSummary.cantidad) {
+        toast("Agrega al menos una cantidad comprada.");
+        return null;
+      }
       const costoUnitarioSoles = numberValue($("#costoUnitarioSoles").value);
       const tipoCambioCompra = numberValue($("#tipoCambioCompra").value) || DEFAULT_RATE;
-      const totalSoles = round2(cantidad * costoUnitarioSoles);
+      const totalSoles = round2(itemSummary.cantidad * costoUnitarioSoles);
 
       return {
         id: existing?.id || makeId(),
         proveedor: $("#proveedor").value.trim(),
         prenda: $("#prenda").value.trim(),
         categoria: $("#categoria").value.trim(),
-        color: $("#color").value.trim(),
-        talla: $("#talla").value.trim(),
-        cantidad,
+        color: itemSummary.color,
+        talla: itemSummary.talla,
+        cantidad: itemSummary.cantidad,
+        items,
         costoUnitarioSoles,
         tipoCambioCompra,
         totalSoles,
@@ -2409,6 +2607,7 @@
       const editId = $("#purchaseEditId").value;
       const existing = editId ? getPurchase(editId) : null;
       const purchase = buildPurchaseFromForm(existing);
+      if (!purchase) return;
 
       if (existing) {
         state.purchases = state.purchases.map((item) => item.id === editId ? purchase : item);
@@ -2545,6 +2744,7 @@
           ${detailItem("Inversión total S/", currency(investmentSoles(purchase), "S/"))}
           ${detailItem("Inversión total USD", currency(investmentDollars(purchase), "$"))}
         </div>
+        ${purchaseItemsRowsForDetail(purchase)}
         <div class="content-box" style="box-shadow:none; margin-bottom:14px;">
           <div class="subhead"><h3>Envío</h3><span class="status-badge ${purchase.envio?.estadoLinea || "pendiente"}">${statusLabel(purchase.envio?.estadoLinea || "pendiente")}</span></div>
           ${purchase.envio ? `
@@ -2587,6 +2787,32 @@
       $("#detailDialog").showModal();
     }
 
+    function purchaseItemsRowsForDetail(purchase) {
+      const items = purchase.items?.length ? purchase.items : purchaseItemsFromPurchase(purchase);
+      if (!items.length) return "";
+      return `
+        <div class="table-wrap" style="margin:0 0 14px;">
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((item) => `
+                <tr>
+                  <td>${escapeHtml(item.color || "Sin color")}</td>
+                  <td>${escapeHtml(item.talla || "Sin talla")}</td>
+                  <td class="money">${escapeHtml(item.cantidad)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
     function detailItem(label, value) {
       return `
         <div class="detail-item">
@@ -2734,6 +2960,7 @@
         "Color",
         "Talla",
         "Cantidad",
+        "Detalle compra",
         "Costo unitario soles",
         "Tipo cambio compra",
         "Total soles",
@@ -2761,6 +2988,7 @@
         purchase.color,
         purchase.talla,
         purchase.cantidad,
+        (purchase.items || []).map((item) => `${item.color || "Sin color"} / ${item.talla || "Sin talla"}: ${item.cantidad}`).join(" | "),
         purchase.costoUnitarioSoles,
         purchase.tipoCambioCompra,
         purchase.totalSoles,
@@ -2883,6 +3111,26 @@
       });
       $("#purchaseForm").addEventListener("submit", savePurchaseFromForm);
       $("#clearFormBtn").addEventListener("click", resetPurchaseForm);
+      $("#addPurchaseLineBtn").addEventListener("click", () => {
+        const items = getPurchaseLinesFromForm();
+        renderPurchaseLines([...items, { color: "", talla: "", cantidad: 1 }]);
+      });
+      $("#purchaseLinesBody").addEventListener("input", (event) => {
+        if (event.target.matches(".purchase-line-color, .purchase-line-talla, .purchase-line-qty")) {
+          syncPurchaseLineSummary();
+        }
+      });
+      $("#purchaseLinesBody").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-purchase-line]");
+        if (!button) return;
+        const rows = $$("#purchaseLinesBody .purchase-line-row");
+        if (rows.length <= 1) {
+          renderPurchaseLines([{ color: "", talla: "", cantidad: 1 }]);
+          return;
+        }
+        button.closest(".purchase-line-row").remove();
+        syncPurchaseLineSummary();
+      });
       $("#shipmentForm").addEventListener("submit", saveShipment);
       $("#arrivalForm").addEventListener("submit", saveArrival);
       $("#transactionForm").addEventListener("submit", saveTransaction);
@@ -2900,7 +3148,7 @@
         renderPurchasesTable();
       });
 
-      ["#cantidad", "#costoUnitarioSoles", "#tipoCambioCompra"].forEach((selector) => {
+      ["#costoUnitarioSoles", "#tipoCambioCompra"].forEach((selector) => {
         $(selector).addEventListener("input", syncPurchaseTotals);
       });
       ["#costoEnvioSoles", "#tipoCambioEnvio"].forEach((selector) => {
