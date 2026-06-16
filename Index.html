@@ -1,0 +1,2945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Compras NEOMAR</title>
+  <style>
+    :root {
+      --bg: #fff8f2;
+      --surface: #ffffff;
+      --surface-soft: #f8efe5;
+      --ink: #191516;
+      --muted: #746966;
+      --line: #eadfd5;
+      --pink: #f5c7d6;
+      --pink-strong: #cf6f8f;
+      --beige: #efe0ce;
+      --beige-deep: #d8bea1;
+      --black: #111111;
+      --ok: #277653;
+      --warn: #a66a16;
+      --danger: #b94242;
+      --info: #5f6270;
+      --pending: #77716d;
+      --pending-bg: #f1efed;
+      --pending-line: #d8d3ce;
+      --process: #c8751a;
+      --process-bg: #fff0df;
+      --process-line: #edb66c;
+      --complete: #277653;
+      --complete-bg: #e9f4ef;
+      --complete-line: #74bf98;
+      --problem: #b94242;
+      --problem-bg: #fae9e9;
+      --problem-line: #e08d8d;
+      --shadow: 0 20px 50px rgba(25, 21, 22, 0.08);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --focus: 0 0 0 3px rgba(207, 111, 143, 0.24);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(245, 199, 214, 0.18), transparent 32%),
+        linear-gradient(315deg, rgba(239, 224, 206, 0.42), transparent 38%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: 100%;
+      padding: 24px clamp(16px, 4vw, 46px);
+      border-bottom: 1px solid rgba(234, 223, 213, 0.9);
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand > div:last-child {
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      color: var(--surface);
+      background: var(--black);
+      border: 2px solid var(--pink);
+      border-radius: var(--radius);
+      font-weight: 800;
+      letter-spacing: 0;
+      flex: 0 0 auto;
+    }
+
+    .brand-kicker {
+      margin: 0 0 2px;
+      color: var(--pink-strong);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2vw, 1.85rem);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .header-actions,
+    .toolbar,
+    .form-actions,
+    .row-actions,
+    .dialog-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px clamp(14px, 3vw, 38px) 44px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      padding: 4px;
+      margin-bottom: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .tab-btn {
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: var(--black);
+      color: var(--surface);
+      box-shadow: 0 10px 22px rgba(17, 17, 17, 0.12);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 14px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card,
+    .content-box,
+    .form-card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-card {
+      padding: 16px;
+      min-height: 108px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-card span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .metric-card strong {
+      margin-top: 12px;
+      font-size: clamp(1.45rem, 2.3vw, 2rem);
+      line-height: 1;
+    }
+
+    .metric-card .accent {
+      color: var(--pink-strong);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+    }
+
+    .content-box {
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th,
+    td {
+      padding: 12px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      font-size: 0.92rem;
+    }
+
+    th {
+      color: var(--muted);
+      background: #fffaf6;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #fff8fb;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .compact-table {
+      min-width: 620px;
+    }
+
+    .receipt-table {
+      min-width: 860px;
+    }
+
+    .receipt-table input,
+    .receipt-table select,
+    .receipt-table textarea {
+      min-height: 36px;
+      padding: 8px;
+      font-size: 0.86rem;
+    }
+
+    .receipt-table textarea {
+      min-height: 58px;
+    }
+
+    .receipt-product {
+      min-width: 190px;
+    }
+
+    .receipt-product strong,
+    .receipt-product span {
+      display: block;
+    }
+
+    .receipt-product span {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .empty-state {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      min-height: 38px;
+      background: var(--black);
+      color: var(--surface);
+      font-weight: 800;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(17, 17, 17, 0.14);
+    }
+
+    .btn.secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn.soft {
+      background: var(--pink);
+      color: var(--black);
+      border-color: #efb8ca;
+    }
+
+    .btn.danger {
+      background: var(--danger);
+      color: var(--surface);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: transparent;
+    }
+
+    .btn.small {
+      min-height: 30px;
+      padding: 6px 9px;
+      font-size: 0.78rem;
+      font-weight: 750;
+    }
+
+    .btn:focus-visible,
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      box-shadow: var(--focus);
+      border-color: var(--pink-strong);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 190px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink);
+      padding: 10px 11px;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input[readonly] {
+      background: #fbf5ef;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .form-card {
+      padding: clamp(16px, 3vw, 24px);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid .span-2 {
+      grid-column: span 2;
+    }
+
+    .form-grid .span-4 {
+      grid-column: 1 / -1;
+    }
+
+    .subhead {
+      margin: 4px 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .subhead h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .pill,
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: max-content;
+      min-height: 26px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .status-badge.pendiente,
+    .timeline-dot.pendiente {
+      background: var(--pending-bg);
+      color: var(--pending);
+    }
+
+    .status-badge.enviada,
+    .status-badge.proceso,
+    .timeline-dot.proceso {
+      background: var(--process-bg);
+      color: var(--process);
+    }
+
+    .status-badge.recibida,
+    .status-badge.completado,
+    .timeline-dot.completado {
+      background: var(--complete-bg);
+      color: var(--complete);
+    }
+
+    .status-badge.problema,
+    .timeline-dot.problema {
+      background: var(--problem-bg);
+      color: var(--problem);
+    }
+
+    .status-badge.correcto {
+      background: var(--complete-bg);
+      color: var(--complete);
+    }
+
+    .status-badge.faltante,
+    .status-badge.danado {
+      background: var(--problem-bg);
+      color: var(--problem);
+    }
+
+    .status-badge.sobrante {
+      background: var(--process-bg);
+      color: var(--process);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 4px 0 18px;
+    }
+
+    .timeline-step {
+      position: relative;
+      min-height: 136px;
+      padding: 16px;
+      border: 1px solid var(--pending-line);
+      border-radius: var(--radius);
+      background: #fffdfb;
+      box-shadow: 0 16px 30px rgba(25, 21, 22, 0.06);
+      overflow: visible;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .timeline-step:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(25, 21, 22, 0.1);
+    }
+
+    .timeline-step::after {
+      content: "";
+      position: absolute;
+      top: 38px;
+      left: calc(100% + 1px);
+      width: 15px;
+      border-top: 3px solid var(--pending-line);
+      z-index: 1;
+    }
+
+    .timeline-step:last-child::after {
+      display: none;
+    }
+
+    .timeline-step.pendiente {
+      border-color: var(--pending-line);
+      background: linear-gradient(180deg, #ffffff 0%, var(--pending-bg) 180%);
+    }
+
+    .timeline-step.proceso,
+    .timeline-step.enviada {
+      border-color: var(--process-line);
+      background: linear-gradient(180deg, #ffffff 0%, var(--process-bg) 165%);
+    }
+
+    .timeline-step.completado,
+    .timeline-step.recibida {
+      border-color: var(--complete-line);
+      background: linear-gradient(180deg, #ffffff 0%, var(--complete-bg) 165%);
+    }
+
+    .timeline-step.problema {
+      border-color: var(--problem-line);
+      background: linear-gradient(180deg, #ffffff 0%, var(--problem-bg) 165%);
+    }
+
+    .timeline-step.pendiente::after {
+      border-color: var(--pending-line);
+    }
+
+    .timeline-step.proceso::after,
+    .timeline-step.enviada::after {
+      border-color: var(--process-line);
+    }
+
+    .timeline-step.completado::after,
+    .timeline-step.recibida::after {
+      border-color: var(--complete-line);
+    }
+
+    .timeline-step.problema::after {
+      border-color: var(--problem-line);
+    }
+
+    .timeline-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 850;
+    }
+
+    .timeline-dot {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 2px solid currentColor;
+      font-size: 0.85rem;
+      font-weight: 900;
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.86);
+    }
+
+    .timeline-step-name {
+      display: block;
+      line-height: 1.15;
+      margin-top: 2px;
+    }
+
+    .timeline-status {
+      margin-left: 48px;
+      margin-bottom: 10px;
+    }
+
+    .timeline-meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.35;
+      margin-left: 48px;
+    }
+
+    .timeline-panel {
+      padding: 18px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #fffdfb 0%, #fff8fb 100%);
+      box-shadow: 0 16px 34px rgba(25, 21, 22, 0.06);
+    }
+
+    .timeline-panel .subhead {
+      margin-bottom: 16px;
+    }
+
+    .timeline-panel p {
+      margin: 0;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .detail-item {
+      padding: 12px;
+      background: #fffaf6;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+
+    .detail-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .detail-item strong {
+      word-break: break-word;
+    }
+
+    dialog {
+      width: min(920px, calc(100vw - 24px));
+      max-height: min(86vh, 900px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.22);
+      padding: 0;
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    dialog::backdrop {
+      background: rgba(17, 17, 17, 0.38);
+      backdrop-filter: blur(3px);
+    }
+
+    .dialog-shell {
+      padding: 20px;
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-size: 1.22rem;
+    }
+
+    .dialog-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 50;
+      min-width: min(360px, calc(100vw - 36px));
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      color: var(--surface);
+      background: var(--black);
+      box-shadow: var(--shadow);
+      transform: translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .money {
+      font-variant-numeric: tabular-nums;
+      font-weight: 850;
+    }
+
+    .danger-text {
+      color: var(--danger);
+      font-weight: 850;
+    }
+
+    .ok-text {
+      color: var(--ok);
+      font-weight: 850;
+    }
+
+    @media (max-width: 1180px) {
+      .metrics {
+        grid-template-columns: repeat(4, minmax(150px, 1fr));
+      }
+
+      .dashboard-grid,
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .app-header {
+        position: static;
+        align-items: flex-start;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        padding: 20px 14px;
+      }
+
+      .brand {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        width: 100%;
+      }
+
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+      }
+
+      .brand-kicker {
+        font-size: 0.72rem;
+      }
+
+      .brand h1 {
+        font-size: 1.08rem;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+
+      .header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .header-actions .btn {
+        width: 100%;
+        min-width: 0;
+        padding-left: 8px;
+        padding-right: 8px;
+        white-space: normal;
+        line-height: 1.2;
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .section-head,
+      .content-box,
+      .form-card {
+        min-width: 0;
+      }
+
+      .metrics,
+      .form-grid,
+      .detail-grid,
+      .timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid .span-2,
+      .form-grid .span-4 {
+        grid-column: auto;
+      }
+
+      .timeline-step::after {
+        left: 35px;
+        top: auto;
+        right: auto;
+        bottom: -16px;
+        height: 16px;
+        width: 0;
+        border-left: 3px solid var(--pending-line);
+        border-top: 0;
+      }
+
+      .timeline-status,
+      .timeline-meta {
+        margin-left: 48px;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-actions {
+        grid-template-columns: 1fr;
+        width: min(340px, calc(100vw - 28px));
+        max-width: min(340px, calc(100vw - 28px));
+      }
+
+      .tabs,
+      .panel.active,
+      .section-head,
+      .metrics,
+      .dashboard-grid {
+        width: min(340px, calc(100vw - 28px));
+        max-width: min(340px, calc(100vw - 28px));
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow-x: visible;
+      }
+
+      .tab-btn {
+        white-space: normal;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .section-head p {
+        max-width: min(340px, calc(100vw - 28px));
+      }
+    }
+
+    @media print {
+      .app-header,
+      .tabs,
+      .toolbar,
+      .row-actions,
+      .form-actions,
+      .dialog-actions {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+      }
+
+      .panel {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">N</div>
+      <div>
+        <p class="brand-kicker">NEOMAR</p>
+        <h1>Gestión de Compras NEOMAR</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn soft" id="newPurchaseTopBtn" type="button">Nueva compra</button>
+      <button class="btn secondary" id="exportJsonBtn" type="button">Exportar JSON</button>
+      <button class="btn secondary" id="importJsonBtn" type="button">Importar JSON</button>
+      <button class="btn secondary" id="exportCsvBtn" type="button">Exportar CSV</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
+      <button class="tab-btn" data-tab="purchases" type="button">Compras</button>
+      <button class="tab-btn" data-tab="corroboration" type="button">Corroboración</button>
+      <button class="tab-btn" data-tab="form" type="button">Formulario</button>
+      <button class="tab-btn" data-tab="transactions" type="button">Transacciones</button>
+    </nav>
+
+    <section class="panel active" id="dashboardPanel">
+      <div class="section-head">
+        <div>
+          <h2>Resumen general</h2>
+          <p>Control rápido de compras, envíos, recepciones y montos convertidos de soles a dólares.</p>
+        </div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+      <div class="dashboard-grid">
+        <div class="content-box">
+          <div class="subhead">
+            <h3>Compras recientes</h3>
+            <button class="btn small secondary" data-tab-jump="purchases" type="button">Ver tabla</button>
+          </div>
+          <div class="table-wrap">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Proveedor</th>
+                  <th>Prenda</th>
+                  <th>Total USD</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="recentPurchases"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="content-box">
+          <div class="subhead">
+            <h3>Línea de tiempo activa</h3>
+            <span class="pill" id="activeTimelineLabel">Sin selección</span>
+          </div>
+          <div id="activeTimeline" class="timeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="purchasesPanel">
+      <div class="section-head">
+        <div>
+          <h2>Tabla de compras</h2>
+          <p>Busca, edita, elimina y registra el avance de cada compra desde Gamarra hasta la recepción.</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn soft" data-tab-jump="form" type="button">Crear compra</button>
+          <button class="btn secondary" id="restoreExamplesBtn" type="button">Datos de ejemplo</button>
+        </div>
+      </div>
+      <div class="filters">
+        <div class="field">
+          <label for="searchInput">Buscar</label>
+          <input id="searchInput" type="search" placeholder="Proveedor, prenda, categoría, color, ID..." />
+        </div>
+        <div class="field">
+          <label for="statusFilter">Estado</label>
+          <select id="statusFilter">
+            <option value="todos">Todos</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="enviada">Enviadas</option>
+            <option value="recibida">Recibidas</option>
+            <option value="problema">Con problemas</option>
+          </select>
+        </div>
+      </div>
+      <div class="content-box">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Prenda</th>
+                <th>Fecha compra</th>
+                <th>Fecha envío</th>
+                <th>Fecha llegada</th>
+                <th>Total soles</th>
+                <th>Total dólares</th>
+                <th>Estado actual</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="purchasesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="corroborationPanel">
+      <div class="section-head">
+        <div>
+          <h2>Corroboración de mercadería</h2>
+          <p>Compara lo comprado contra lo recibido por prenda, color y talla. La diferencia y el estado se calculan automáticamente.</p>
+        </div>
+      </div>
+      <div class="content-box">
+        <div class="table-wrap">
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Producto</th>
+                <th>Comprado</th>
+                <th>Recibido</th>
+                <th>Diferencia</th>
+                <th>Estado</th>
+                <th>Observación</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="corroborationTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="formPanel">
+      <div class="section-head">
+        <div>
+          <h2 id="formTitle">Registrar compra</h2>
+          <p>Los totales se calculan automáticamente y se guardan en este navegador con localStorage.</p>
+        </div>
+      </div>
+      <form class="form-card" id="purchaseForm">
+        <input type="hidden" id="purchaseEditId" />
+        <div class="subhead">
+          <h3>Datos de compra</h3>
+          <span class="pill">Soles a dólares</span>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="proveedor">Proveedor</label>
+            <input id="proveedor" required placeholder="Ej. Galería San Pedro" />
+          </div>
+          <div class="field">
+            <label for="prenda">Prenda</label>
+            <input id="prenda" required placeholder="Ej. Blusa satinada" />
+          </div>
+          <div class="field">
+            <label for="categoria">Categoría</label>
+            <input id="categoria" list="categoriasList" required placeholder="Ej. Blusas" />
+            <datalist id="categoriasList">
+              <option value="Blusas"></option>
+              <option value="Vestidos"></option>
+              <option value="Jeans"></option>
+              <option value="Conjuntos"></option>
+              <option value="Faldas"></option>
+              <option value="Básicos"></option>
+              <option value="Accesorios"></option>
+            </datalist>
+          </div>
+          <div class="field">
+            <label for="estadoCompra">Estado compra</label>
+            <select id="estadoCompra">
+              <option value="completado">Completada</option>
+              <option value="proceso">En proceso</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="problema">Con problema</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="color">Color</label>
+            <input id="color" placeholder="Ej. Rosado" />
+          </div>
+          <div class="field">
+            <label for="talla">Talla</label>
+            <input id="talla" placeholder="Ej. S, M, L" />
+          </div>
+          <div class="field">
+            <label for="cantidad">Cantidad comprada</label>
+            <input id="cantidad" type="number" min="1" step="1" required />
+          </div>
+          <div class="field">
+            <label for="costoUnitarioSoles">Costo unitario S/</label>
+            <input id="costoUnitarioSoles" type="number" min="0" step="0.01" required />
+          </div>
+          <div class="field">
+            <label for="tipoCambioCompra">Tipo de cambio</label>
+            <input id="tipoCambioCompra" type="number" min="0.0001" step="0.0001" required />
+          </div>
+          <div class="field">
+            <label for="totalSoles">Total soles</label>
+            <input id="totalSoles" readonly />
+          </div>
+          <div class="field">
+            <label for="totalDolares">Total dólares</label>
+            <input id="totalDolares" readonly />
+          </div>
+          <div class="field">
+            <label for="fechaCompra">Fecha de compra</label>
+            <input id="fechaCompra" type="date" required />
+          </div>
+          <div class="field span-4">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" placeholder="Notas del proveedor, calidad, condiciones, tallaje..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top: 18px;">
+          <button class="btn" type="submit">Guardar compra</button>
+          <button class="btn secondary" id="clearFormBtn" type="button">Limpiar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" id="transactionsPanel">
+      <div class="section-head">
+        <div>
+          <h2>Transacciones</h2>
+          <p>Registra pagos, envíos, otros gastos, devoluciones y ajustes vinculados a cada compra.</p>
+        </div>
+      </div>
+      <div class="metrics" id="transactionMetrics"></div>
+      <div class="split">
+        <form class="form-card" id="transactionForm">
+          <div class="subhead">
+            <h3>Nueva transacción</h3>
+            <span class="pill">Caja NEOMAR</span>
+          </div>
+          <div class="form-grid">
+            <div class="field span-2">
+              <label for="transactionPurchase">Compra</label>
+              <select id="transactionPurchase" required></select>
+            </div>
+            <div class="field">
+              <label for="transactionDate">Fecha</label>
+              <input id="transactionDate" type="date" required />
+            </div>
+            <div class="field">
+              <label for="transactionType">Tipo</label>
+              <select id="transactionType" required>
+                <option value="Pago de compra">Pago de compra</option>
+                <option value="Pago de envío">Pago de envío</option>
+                <option value="Otros gastos">Otros gastos</option>
+                <option value="Devolución">Devolución</option>
+                <option value="Ajuste">Ajuste</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="transactionSoles">Monto S/</label>
+              <input id="transactionSoles" type="number" min="0" step="0.01" required />
+            </div>
+            <div class="field">
+              <label for="transactionRate">Tipo de cambio</label>
+              <input id="transactionRate" type="number" min="0.0001" step="0.0001" required />
+            </div>
+            <div class="field">
+              <label for="transactionDollars">Monto USD</label>
+              <input id="transactionDollars" readonly />
+            </div>
+            <div class="field">
+              <label for="transactionMethod">Método de pago</label>
+              <input id="transactionMethod" placeholder="Efectivo, transferencia..." />
+            </div>
+            <div class="field span-2">
+              <label for="transactionReference">Referencia</label>
+              <input id="transactionReference" placeholder="Número de operación, recibo..." />
+            </div>
+            <div class="field span-4">
+              <label for="transactionObservation">Observación</label>
+              <textarea id="transactionObservation" placeholder="Detalle adicional de la transacción"></textarea>
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top: 18px;">
+            <button class="btn" type="submit">Agregar transacción</button>
+          </div>
+        </form>
+        <div class="content-box">
+          <div class="subhead">
+            <h3>Historial de la compra</h3>
+            <span class="pill" id="transactionSummary">S/ 0.00</span>
+          </div>
+          <div class="table-wrap">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Soles</th>
+                  <th>Dólares</th>
+                  <th>Método</th>
+                  <th>Referencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="content-box" style="margin-top:14px;">
+        <div class="subhead">
+          <h3>Todas las transacciones</h3>
+          <span class="pill" id="allTransactionsSummary">0 movimientos</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Compra</th>
+                <th>Proveedor</th>
+                <th>Tipo</th>
+                <th>Soles</th>
+                <th>Dólares</th>
+                <th>Tipo cambio</th>
+                <th>Método</th>
+                <th>Referencia</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="allTransactionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div>
+          <h2 id="detailTitle">Detalle de compra</h2>
+          <p id="detailSubtitle"></p>
+        </div>
+        <button class="btn ghost" type="button" data-close-dialog="detailDialog">Cerrar</button>
+      </div>
+      <div id="detailBody"></div>
+    </div>
+  </dialog>
+
+  <dialog id="shipmentDialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div>
+          <h2>Registrar envío</h2>
+          <p id="shipmentSubtitle"></p>
+        </div>
+        <button class="btn ghost" type="button" data-close-dialog="shipmentDialog">Cerrar</button>
+      </div>
+      <form id="shipmentForm">
+        <input type="hidden" id="shipmentPurchaseId" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="fechaEnvio">Fecha de envío</label>
+            <input id="fechaEnvio" type="date" required />
+          </div>
+          <div class="field">
+            <label for="empresaTransporte">Empresa de transporte</label>
+            <input id="empresaTransporte" required placeholder="Ej. Shalom, Marvisur..." />
+          </div>
+          <div class="field">
+            <label for="numeroGuia">Número de guía</label>
+            <input id="numeroGuia" placeholder="Guía o tracking" />
+          </div>
+          <div class="field">
+            <label for="estadoEnvio">Estado del envío</label>
+            <select id="estadoEnvio">
+              <option value="completado">Completado</option>
+              <option value="proceso">En proceso</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="problema">Con problema</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="costoEnvioSoles">Costo de envío S/</label>
+            <input id="costoEnvioSoles" type="number" min="0" step="0.01" required />
+          </div>
+          <div class="field">
+            <label for="tipoCambioEnvio">Tipo de cambio</label>
+            <input id="tipoCambioEnvio" type="number" min="0.0001" step="0.0001" required />
+          </div>
+          <div class="field">
+            <label for="costoEnvioDolares">Costo envío USD</label>
+            <input id="costoEnvioDolares" readonly />
+          </div>
+          <div class="field span-4">
+            <label for="observacionesEnvio">Observaciones</label>
+            <textarea id="observacionesEnvio" placeholder="Notas de envío, horarios, contacto, incidencia..."></textarea>
+          </div>
+        </div>
+        <div class="dialog-actions" style="margin-top: 18px;">
+          <button class="btn" type="submit">Guardar envío</button>
+          <button class="btn secondary" type="button" data-close-dialog="shipmentDialog">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="arrivalDialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div>
+          <h2>Registrar recepción</h2>
+          <p id="arrivalSubtitle"></p>
+        </div>
+        <button class="btn ghost" type="button" data-close-dialog="arrivalDialog">Cerrar</button>
+      </div>
+      <form id="arrivalForm">
+        <input type="hidden" id="arrivalPurchaseId" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="fechaLlegada">Fecha de llegada</label>
+            <input id="fechaLlegada" type="date" required />
+          </div>
+          <div class="field">
+            <label for="cantidadEsperada">Cantidad esperada</label>
+            <input id="cantidadEsperada" type="number" min="0" step="1" readonly required />
+          </div>
+          <div class="field">
+            <label for="cantidadRecibida">Cantidad recibida</label>
+            <input id="cantidadRecibida" type="number" min="0" step="1" readonly required />
+          </div>
+          <div class="field">
+            <label for="diferenciaLlegada">Diferencia</label>
+            <input id="diferenciaLlegada" readonly />
+          </div>
+          <div class="field">
+            <label for="estadoLlegada">Estado</label>
+            <select id="estadoLlegada">
+              <option value="correcto">Correcto</option>
+              <option value="faltante">Faltante</option>
+              <option value="sobrante">Sobrante</option>
+              <option value="danado">Dañado</option>
+            </select>
+          </div>
+          <div class="field span-4">
+            <label for="observacionesLlegada">Observaciones</label>
+            <textarea id="observacionesLlegada" placeholder="Control de calidad, unidades faltantes, daños o diferencias"></textarea>
+          </div>
+          <div class="field span-4">
+            <label>Corroboración por prenda, color y talla</label>
+            <div class="table-wrap">
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Comprado</th>
+                    <th>Recibido</th>
+                    <th>Diferencia</th>
+                    <th>Estado</th>
+                    <th>Observación del producto</th>
+                  </tr>
+                </thead>
+                <tbody id="arrivalItemsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-actions" style="margin-top: 18px;">
+          <button class="btn" type="submit">Guardar recepción</button>
+          <button class="btn secondary" type="button" data-close-dialog="arrivalDialog">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <input id="importFile" type="file" accept=".json,application/json" hidden />
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "neomar_compras_v1";
+    const DEFAULT_RATE = 3.75;
+
+    const state = {
+      purchases: [],
+      activeId: null,
+      search: "",
+      status: "todos"
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function numberValue(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function round2(value) {
+      return Math.round((Number(value) || 0) * 100) / 100;
+    }
+
+    function currency(value, symbol) {
+      return `${symbol} ${round2(value).toLocaleString("es-EC", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function dateLabel(date) {
+      if (!date) return "Pendiente";
+      const safeDate = `${date}T12:00:00`;
+      return new Date(safeDate).toLocaleDateString("es-EC", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit"
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function makeId() {
+      const nextNumber = state.purchases.reduce((max, purchase) => {
+        const numeric = Number(String(purchase.id).replace(/\D/g, ""));
+        return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
+      }, 0) + 1;
+      return `NEO-${String(nextNumber).padStart(4, "0")}`;
+    }
+
+    function downloadFile(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function toast(message) {
+      const element = $("#toast");
+      element.textContent = message;
+      element.classList.add("visible");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => element.classList.remove("visible"), 2600);
+    }
+
+    function closeDialog(id) {
+      const dialog = $(`#${id}`);
+      if (dialog?.open) dialog.close();
+    }
+
+    function samplePurchases() {
+      return [
+        {
+          id: "NEO-0001",
+          proveedor: "Gamarra Moda Center",
+          prenda: "Blusa satinada manga larga",
+          categoria: "Blusas",
+          color: "Rosado pastel",
+          talla: "S, M, L",
+          cantidad: 36,
+          costoUnitarioSoles: 24.5,
+          tipoCambioCompra: 3.75,
+          totalSoles: 882,
+          totalDolares: 235.2,
+          fechaCompra: "2026-06-03",
+          estadoCompra: "completado",
+          observaciones: "Buen acabado, revisar botones antes de exhibir.",
+          envio: {
+            fechaEnvio: "2026-06-05",
+            empresaTransporte: "Shalom",
+            numeroGuia: "SH-884219",
+            costoEnvioSoles: 48,
+            tipoCambioEnvio: 3.76,
+            costoEnvioDolares: 12.77,
+            estadoLinea: "completado",
+            observaciones: "Caja mediana, llega a oficina principal."
+          },
+          llegada: {
+            fechaLlegada: "2026-06-08",
+            cantidadEsperada: 36,
+            cantidadRecibida: 36,
+            diferencia: 0,
+            estado: "correcto",
+            observaciones: "Recepción completa."
+          },
+          transactions: [
+            {
+              id: "TX-1001",
+              fecha: "2026-06-03",
+              tipo: "Pago de compra",
+              montoSoles: 882,
+              tipoCambio: 3.75,
+              montoDolares: 235.2,
+              metodoPago: "Transferencia",
+              referencia: "OP-5412",
+              observacion: "Pago total al proveedor."
+            },
+            {
+              id: "TX-1002",
+              fecha: "2026-06-05",
+              tipo: "Pago de envío",
+              montoSoles: 48,
+              tipoCambio: 3.76,
+              montoDolares: 12.77,
+              metodoPago: "Efectivo",
+              referencia: "Guía SH-884219",
+              observacion: "Transporte Lima a Ecuador."
+            }
+          ],
+          createdAt: "2026-06-03T10:00:00.000Z",
+          updatedAt: "2026-06-08T15:30:00.000Z"
+        },
+        {
+          id: "NEO-0002",
+          proveedor: "Textiles La Victoria",
+          prenda: "Jean recto tiro alto",
+          categoria: "Jeans",
+          color: "Azul medio",
+          talla: "28, 30, 32",
+          cantidad: 24,
+          costoUnitarioSoles: 39,
+          tipoCambioCompra: 3.74,
+          totalSoles: 936,
+          totalDolares: 250.27,
+          fechaCompra: "2026-06-09",
+          estadoCompra: "completado",
+          observaciones: "Proveedor pidió confirmar stock de talla 32.",
+          envio: {
+            fechaEnvio: "2026-06-11",
+            empresaTransporte: "Marvisur",
+            numeroGuia: "MV-233910",
+            costoEnvioSoles: 62,
+            tipoCambioEnvio: 3.75,
+            costoEnvioDolares: 16.53,
+            estadoLinea: "proceso",
+            observaciones: "En tránsito."
+          },
+          llegada: null,
+          transactions: [
+            {
+              id: "TX-1003",
+              fecha: "2026-06-09",
+              tipo: "Pago de compra",
+              montoSoles: 500,
+              tipoCambio: 3.74,
+              montoDolares: 133.69,
+              metodoPago: "Transferencia",
+              referencia: "Anticipo",
+              observacion: "Saldo pendiente contra entrega."
+            }
+          ],
+          createdAt: "2026-06-09T12:00:00.000Z",
+          updatedAt: "2026-06-11T12:30:00.000Z"
+        },
+        {
+          id: "NEO-0003",
+          proveedor: "Fashion Gamarra 128",
+          prenda: "Vestido lino botones",
+          categoria: "Vestidos",
+          color: "Beige",
+          talla: "Única",
+          cantidad: 18,
+          costoUnitarioSoles: 45,
+          tipoCambioCompra: 3.73,
+          totalSoles: 810,
+          totalDolares: 217.16,
+          fechaCompra: "2026-06-12",
+          estadoCompra: "completado",
+          observaciones: "Compra lista para coordinar envío.",
+          envio: null,
+          llegada: null,
+          transactions: [],
+          createdAt: "2026-06-12T09:00:00.000Z",
+          updatedAt: "2026-06-12T09:00:00.000Z"
+        },
+        {
+          id: "NEO-0004",
+          proveedor: "Confecciones Milagros",
+          prenda: "Conjunto chaleco y pantalón",
+          categoria: "Conjuntos",
+          color: "Negro",
+          talla: "M, L",
+          cantidad: 20,
+          costoUnitarioSoles: 58,
+          tipoCambioCompra: 3.76,
+          totalSoles: 1160,
+          totalDolares: 308.51,
+          fechaCompra: "2026-06-01",
+          estadoCompra: "completado",
+          observaciones: "Separar las unidades con costura irregular.",
+          envio: {
+            fechaEnvio: "2026-06-02",
+            empresaTransporte: "Olva Courier",
+            numeroGuia: "OL-771902",
+            costoEnvioSoles: 55,
+            tipoCambioEnvio: 3.76,
+            costoEnvioDolares: 14.63,
+            estadoLinea: "completado",
+            observaciones: "Entrega regular."
+          },
+          llegada: {
+            fechaLlegada: "2026-06-06",
+            cantidadEsperada: 20,
+            cantidadRecibida: 18,
+            diferencia: -2,
+            estado: "faltante",
+            observaciones: "Faltan dos pantalones talla L."
+          },
+          transactions: [
+            {
+              id: "TX-1004",
+              fecha: "2026-06-10",
+              tipo: "Devolución",
+              montoSoles: 116,
+              tipoCambio: 3.76,
+              montoDolares: 30.85,
+              metodoPago: "Transferencia",
+              referencia: "DEV-19",
+              observacion: "Descuento por faltante."
+            }
+          ],
+          createdAt: "2026-06-01T08:00:00.000Z",
+          updatedAt: "2026-06-10T16:20:00.000Z"
+        }
+      ];
+    }
+
+    function autoArrivalState(expected, received, currentState = "") {
+      if (currentState === "danado") return "danado";
+      const difference = numberValue(received) - numberValue(expected);
+      if (difference < 0) return "faltante";
+      if (difference > 0) return "sobrante";
+      return "correcto";
+    }
+
+    function normalizeArrivalItem(purchase, item = {}, index = 0) {
+      const cantidadComprada = numberValue(item.cantidadComprada ?? item.cantidadEsperada ?? purchase.cantidad);
+      const cantidadRecibida = numberValue(item.cantidadRecibida ?? item.recibida ?? cantidadComprada);
+      const estado = autoArrivalState(cantidadComprada, cantidadRecibida, item.estado);
+
+      return {
+        id: item.id || `${purchase.id}-REC-${index + 1}`,
+        prenda: item.prenda || purchase.prenda || "",
+        color: item.color || purchase.color || "",
+        talla: item.talla || purchase.talla || "",
+        cantidadComprada,
+        cantidadRecibida,
+        diferencia: cantidadRecibida - cantidadComprada,
+        estado,
+        observacion: item.observacion || item.observaciones || ""
+      };
+    }
+
+    function arrivalItemsFromPurchase(purchase, llegada = purchase.llegada) {
+      if (llegada?.items?.length) {
+        return llegada.items.map((item, index) => normalizeArrivalItem(purchase, item, index));
+      }
+
+      if (!llegada) {
+        return [normalizeArrivalItem(purchase, {
+          cantidadComprada: purchase.cantidad,
+          cantidadRecibida: purchase.cantidad
+        }, 0)];
+      }
+
+      return [normalizeArrivalItem(purchase, {
+        cantidadComprada: llegada.cantidadEsperada ?? purchase.cantidad,
+        cantidadRecibida: llegada.cantidadRecibida ?? purchase.cantidad,
+        estado: llegada.estado,
+        observacion: llegada.observaciones
+      }, 0)];
+    }
+
+    function summarizeArrivalItems(items) {
+      const summary = items.reduce((totals, item) => {
+        totals.expected += numberValue(item.cantidadComprada);
+        totals.received += numberValue(item.cantidadRecibida);
+        return totals;
+      }, { expected: 0, received: 0 });
+      summary.difference = summary.received - summary.expected;
+      summary.state = aggregateArrivalState(items);
+      return summary;
+    }
+
+    function aggregateArrivalState(items) {
+      if (!items.length) return "correcto";
+      if (items.some((item) => item.estado === "danado")) return "danado";
+      if (items.some((item) => item.estado === "faltante")) return "faltante";
+      if (items.some((item) => item.estado === "sobrante")) return "sobrante";
+      return "correcto";
+    }
+
+    function normalizePurchase(purchase) {
+      const cantidad = numberValue(purchase.cantidad);
+      const costoUnitarioSoles = numberValue(purchase.costoUnitarioSoles);
+      const tipoCambioCompra = numberValue(purchase.tipoCambioCompra) || DEFAULT_RATE;
+      const totalSoles = round2(cantidad * costoUnitarioSoles);
+      const totalDolares = round2(totalSoles / tipoCambioCompra);
+      const normalizedId = purchase.id || makeId();
+      const baseForArrival = {
+        ...purchase,
+        id: normalizedId,
+        prenda: purchase.prenda || "",
+        color: purchase.color || "",
+        talla: purchase.talla || "",
+        cantidad
+      };
+      const envio = purchase.envio ? {
+        fechaEnvio: purchase.envio.fechaEnvio || "",
+        empresaTransporte: purchase.envio.empresaTransporte || "",
+        numeroGuia: purchase.envio.numeroGuia || "",
+        costoEnvioSoles: round2(purchase.envio.costoEnvioSoles),
+        tipoCambioEnvio: numberValue(purchase.envio.tipoCambioEnvio) || tipoCambioCompra,
+        costoEnvioDolares: round2(numberValue(purchase.envio.costoEnvioSoles) / (numberValue(purchase.envio.tipoCambioEnvio) || tipoCambioCompra || DEFAULT_RATE)),
+        estadoLinea: purchase.envio.estadoLinea || "completado",
+        observaciones: purchase.envio.observaciones || ""
+      } : null;
+      const llegadaItems = purchase.llegada ? arrivalItemsFromPurchase(baseForArrival, purchase.llegada) : [];
+      const llegadaSummary = llegadaItems.length ? summarizeArrivalItems(llegadaItems) : null;
+      const llegada = purchase.llegada ? {
+        fechaLlegada: purchase.llegada.fechaLlegada || "",
+        cantidadEsperada: llegadaSummary.expected,
+        cantidadRecibida: llegadaSummary.received,
+        diferencia: llegadaSummary.difference,
+        estado: llegadaSummary.state,
+        observaciones: purchase.llegada.observaciones || "",
+        items: llegadaItems
+      } : null;
+
+      return {
+        id: normalizedId,
+        proveedor: purchase.proveedor || "",
+        prenda: purchase.prenda || "",
+        categoria: purchase.categoria || "",
+        color: purchase.color || "",
+        talla: purchase.talla || "",
+        cantidad,
+        costoUnitarioSoles,
+        tipoCambioCompra,
+        totalSoles,
+        totalDolares,
+        fechaCompra: purchase.fechaCompra || today(),
+        estadoCompra: purchase.estadoCompra || "completado",
+        observaciones: purchase.observaciones || "",
+        envio,
+        llegada,
+        transactions: Array.isArray(purchase.transactions)
+          ? purchase.transactions.map(normalizeTransaction)
+          : [],
+        createdAt: purchase.createdAt || new Date().toISOString(),
+        updatedAt: purchase.updatedAt || new Date().toISOString()
+      };
+    }
+
+    function normalizeTransaction(transaction) {
+      const montoSoles = round2(transaction.montoSoles);
+      const tipoCambio = numberValue(transaction.tipoCambio) || DEFAULT_RATE;
+      return {
+        id: transaction.id || `TX-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+        fecha: transaction.fecha || today(),
+        tipo: transaction.tipo || "Pago de compra",
+        montoSoles,
+        tipoCambio,
+        montoDolares: round2(montoSoles / tipoCambio),
+        metodoPago: transaction.metodoPago || "",
+        referencia: transaction.referencia || "",
+        observacion: transaction.observacion || ""
+      };
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        state.purchases = samplePurchases().map(normalizePurchase);
+        state.activeId = state.purchases[0]?.id || null;
+        saveData();
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        const purchases = Array.isArray(parsed) ? parsed : parsed.purchases;
+        state.purchases = Array.isArray(purchases) ? purchases.map(normalizePurchase) : samplePurchases();
+        state.activeId = state.purchases[0]?.id || null;
+      } catch (error) {
+        console.error(error);
+        state.purchases = samplePurchases().map(normalizePurchase);
+        state.activeId = state.purchases[0]?.id || null;
+        toast("Se cargaron datos de ejemplo porque el almacenamiento estaba dañado.");
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        app: "Gestión de Compras NEOMAR",
+        version: 1,
+        savedAt: new Date().toISOString(),
+        purchases: state.purchases
+      }));
+    }
+
+    function getPurchase(id) {
+      return state.purchases.find((purchase) => purchase.id === id);
+    }
+
+    function currentStatus(purchase) {
+      if (purchase.estadoCompra === "problema") return "problema";
+      if (purchase.llegada?.fechaLlegada) {
+        return purchase.llegada.estado === "correcto" ? "recibida" : "problema";
+      }
+      if (purchase.envio?.fechaEnvio) {
+        return purchase.envio.estadoLinea === "problema" ? "problema" : "enviada";
+      }
+      return "pendiente";
+    }
+
+    function statusLabel(status) {
+      return {
+        pendiente: "Pendiente",
+        enviada: "Enviada",
+        recibida: "Recibida",
+        problema: "Con problema",
+        proceso: "En proceso",
+        completado: "Completado"
+      }[status] || status;
+    }
+
+    function arrivalLabel(status) {
+      return {
+        correcto: "Correcto",
+        faltante: "Faltante",
+        sobrante: "Sobrante",
+        danado: "Dañado"
+      }[status] || "Pendiente";
+    }
+
+    function timelineSteps(purchase) {
+      const shipmentStatus = purchase.envio?.estadoLinea || "pendiente";
+      let arrivalStatus = "pendiente";
+      if (purchase.llegada?.fechaLlegada) {
+        arrivalStatus = purchase.llegada.estado === "correcto" ? "completado" : "problema";
+      } else if (purchase.envio?.fechaEnvio) {
+        arrivalStatus = "proceso";
+      }
+
+      return [
+        {
+          title: "Compra realizada",
+          status: purchase.estadoCompra || "completado",
+          meta: `${dateLabel(purchase.fechaCompra)} · ${currency(purchase.totalSoles, "S/")}`
+        },
+        {
+          title: "Envío realizado",
+          status: shipmentStatus,
+          meta: purchase.envio
+            ? `${dateLabel(purchase.envio.fechaEnvio)} · ${purchase.envio.empresaTransporte || "Sin transporte"}`
+            : "Aún no registrado"
+        },
+        {
+          title: "Mercadería recibida",
+          status: arrivalStatus,
+          meta: purchase.llegada
+            ? `${dateLabel(purchase.llegada.fechaLlegada)} · ${arrivalLabel(purchase.llegada.estado)}`
+            : "Pendiente de recepción"
+        }
+      ];
+    }
+
+    function renderTimeline(purchase) {
+      if (!purchase) {
+        return `<div class="empty-state">Selecciona una compra para ver su línea de tiempo.</div>`;
+      }
+
+      return timelineSteps(purchase).map((step, index) => `
+        <div class="timeline-step ${escapeHtml(step.status)}">
+          <div class="timeline-title">
+            <span class="timeline-dot ${escapeHtml(step.status)}">${index + 1}</span>
+            <span class="timeline-step-name">${escapeHtml(step.title)}</span>
+          </div>
+          <div class="timeline-status">
+            <span class="status-badge ${escapeHtml(step.status)}">${statusLabel(step.status)}</span>
+          </div>
+          <div class="timeline-meta">${escapeHtml(step.meta)}</div>
+        </div>
+      `).join("");
+    }
+
+    function investmentSoles(purchase) {
+      return round2(purchase.totalSoles + numberValue(purchase.envio?.costoEnvioSoles));
+    }
+
+    function investmentDollars(purchase) {
+      return round2(purchase.totalDolares + numberValue(purchase.envio?.costoEnvioDolares));
+    }
+
+    function transactionSign(type) {
+      return type === "Devolución" ? -1 : 1;
+    }
+
+    function signedTransactionTotal(purchase, currencyKey) {
+      return purchase.transactions.reduce((sum, transaction) => {
+        return sum + transactionSign(transaction.tipo) * numberValue(transaction[currencyKey]);
+      }, 0);
+    }
+
+    function dashboardStats() {
+      const statusCounts = state.purchases.reduce((counts, purchase) => {
+        counts[currentStatus(purchase)] += 1;
+        return counts;
+      }, { pendiente: 0, enviada: 0, recibida: 0, problema: 0 });
+
+      return {
+        total: state.purchases.length,
+        soles: state.purchases.reduce((sum, purchase) => sum + investmentSoles(purchase), 0),
+        dollars: state.purchases.reduce((sum, purchase) => sum + investmentDollars(purchase), 0),
+        ...statusCounts
+      };
+    }
+
+    function renderMetrics() {
+      const stats = dashboardStats();
+      const metrics = [
+        ["Total de compras", stats.total, ""],
+        ["Total invertido S/", currency(stats.soles, "S/"), "accent"],
+        ["Total convertido USD", currency(stats.dollars, "$"), "accent"],
+        ["Compras pendientes", stats.pendiente, ""],
+        ["Compras enviadas", stats.enviada, ""],
+        ["Compras recibidas", stats.recibida, ""],
+        ["Compras con problemas", stats.problema, ""]
+      ];
+
+      $("#metrics").innerHTML = metrics.map(([label, value, accent]) => `
+        <article class="metric-card">
+          <span>${escapeHtml(label)}</span>
+          <strong class="${accent}">${escapeHtml(value)}</strong>
+        </article>
+      `).join("");
+    }
+
+    function filteredPurchases() {
+      const query = state.search.trim().toLowerCase();
+      return state.purchases
+        .filter((purchase) => state.status === "todos" || currentStatus(purchase) === state.status)
+        .filter((purchase) => {
+          if (!query) return true;
+          const haystack = [
+            purchase.id,
+            purchase.proveedor,
+            purchase.prenda,
+            purchase.categoria,
+            purchase.color,
+            purchase.talla,
+            purchase.fechaCompra,
+            purchase.envio?.fechaEnvio,
+            purchase.llegada?.fechaLlegada
+          ].join(" ").toLowerCase();
+          return haystack.includes(query);
+        })
+        .sort((a, b) => String(b.fechaCompra).localeCompare(String(a.fechaCompra)));
+    }
+
+    function renderPurchasesTable() {
+      const purchases = filteredPurchases();
+      const table = $("#purchasesTable");
+
+      if (!purchases.length) {
+        table.innerHTML = `<tr><td colspan="10"><div class="empty-state">No hay compras con esos filtros.</div></td></tr>`;
+        return;
+      }
+
+      table.innerHTML = purchases.map((purchase) => {
+        const status = currentStatus(purchase);
+        return `
+          <tr>
+            <td><button class="btn small ghost" type="button" data-view="${escapeHtml(purchase.id)}">${escapeHtml(purchase.id)}</button></td>
+            <td>${escapeHtml(purchase.proveedor)}</td>
+            <td>
+              <strong>${escapeHtml(purchase.prenda)}</strong><br>
+              <span class="muted">${escapeHtml(purchase.categoria)} · ${escapeHtml(purchase.color)} · ${escapeHtml(purchase.talla)}</span>
+            </td>
+            <td>${dateLabel(purchase.fechaCompra)}</td>
+            <td>${dateLabel(purchase.envio?.fechaEnvio)}</td>
+            <td>${dateLabel(purchase.llegada?.fechaLlegada)}</td>
+            <td class="money">${currency(purchase.totalSoles, "S/")}</td>
+            <td class="money">${currency(purchase.totalDolares, "$")}</td>
+            <td><span class="status-badge ${status}">${statusLabel(status)}</span></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn small secondary" type="button" data-view="${escapeHtml(purchase.id)}">Ver</button>
+                <button class="btn small secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar</button>
+                <button class="btn small secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Marcar envío</button>
+                <button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Marcar recibido</button>
+                <button class="btn small danger" type="button" data-delete="${escapeHtml(purchase.id)}">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderCorroborationTable() {
+      const table = $("#corroborationTable");
+      const rows = [...state.purchases]
+        .sort((a, b) => String(b.fechaCompra).localeCompare(String(a.fechaCompra)))
+        .flatMap((purchase) => {
+          const hasArrival = Boolean(purchase.llegada?.fechaLlegada);
+          const items = hasArrival ? arrivalItemsFromPurchase(purchase) : arrivalItemsFromPurchase(purchase).map((item) => ({
+            ...item,
+            cantidadRecibida: 0,
+            diferencia: -numberValue(item.cantidadComprada),
+            estado: "pendiente",
+            observacion: ""
+          }));
+
+          return items.map((item) => ({ purchase, item, hasArrival }));
+        });
+
+      if (!rows.length) {
+        table.innerHTML = `<tr><td colspan="9"><div class="empty-state">Aún no hay compras para corroborar.</div></td></tr>`;
+        return;
+      }
+
+      table.innerHTML = rows.map(({ purchase, item, hasArrival }) => {
+        const statusClass = hasArrival ? item.estado : "pendiente";
+        const statusText = hasArrival ? arrivalLabel(item.estado) : "Pendiente";
+        return `
+          <tr>
+            <td>${escapeHtml(purchase.id)}</td>
+            <td>${escapeHtml(purchase.proveedor)}</td>
+            <td class="receipt-product">
+              <strong>${escapeHtml(item.prenda)}</strong>
+              <span>${escapeHtml(item.color || "Sin color")} · ${escapeHtml(item.talla || "Sin talla")}</span>
+            </td>
+            <td class="money">${escapeHtml(item.cantidadComprada)}</td>
+            <td class="money">${hasArrival ? escapeHtml(item.cantidadRecibida) : "Sin registrar"}</td>
+            <td class="${item.diferencia < 0 ? "danger-text" : item.diferencia > 0 ? "ok-text" : "money"}">${hasArrival ? escapeHtml(item.diferencia) : "Pendiente"}</td>
+            <td><span class="status-badge ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span></td>
+            <td>${escapeHtml(hasArrival ? (item.observacion || purchase.llegada?.observaciones || "Sin observación") : "Recepción pendiente")}</td>
+            <td><button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">${hasArrival ? "Editar recepción" : "Corroborar"}</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderRecentPurchases() {
+      const recent = [...state.purchases]
+        .sort((a, b) => String(b.fechaCompra).localeCompare(String(a.fechaCompra)))
+        .slice(0, 6);
+
+      $("#recentPurchases").innerHTML = recent.length ? recent.map((purchase) => {
+        const status = currentStatus(purchase);
+        return `
+          <tr>
+            <td><button class="btn small ghost" type="button" data-view="${escapeHtml(purchase.id)}">${escapeHtml(purchase.id)}</button></td>
+            <td>${escapeHtml(purchase.proveedor)}</td>
+            <td>${escapeHtml(purchase.prenda)}</td>
+            <td class="money">${currency(purchase.totalDolares, "$")}</td>
+            <td><span class="status-badge ${status}">${statusLabel(status)}</span></td>
+          </tr>
+        `;
+      }).join("") : `<tr><td colspan="5"><div class="empty-state">Aún no hay compras.</div></td></tr>`;
+    }
+
+    function renderActiveTimeline() {
+      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
+      const purchase = getPurchase(state.activeId);
+      $("#activeTimelineLabel").textContent = purchase ? `${purchase.id} · ${purchase.prenda}` : "Sin selección";
+      $("#activeTimeline").innerHTML = renderTimeline(purchase);
+    }
+
+    function renderTransactionPurchaseOptions() {
+      const select = $("#transactionPurchase");
+      const previous = select.value || state.activeId;
+      select.innerHTML = state.purchases.map((purchase) => `
+        <option value="${escapeHtml(purchase.id)}">${escapeHtml(purchase.id)} · ${escapeHtml(purchase.prenda)} · ${escapeHtml(purchase.proveedor)}</option>
+      `).join("");
+      select.value = getPurchase(previous) ? previous : (state.purchases[0]?.id || "");
+    }
+
+    function allTransactions() {
+      return state.purchases.flatMap((purchase) => {
+        return purchase.transactions.map((transaction) => ({ purchase, transaction }));
+      }).sort((a, b) => String(b.transaction.fecha).localeCompare(String(a.transaction.fecha)));
+    }
+
+    function signedAmount(transaction, key) {
+      return transactionSign(transaction.tipo) * numberValue(transaction[key]);
+    }
+
+    function renderTransactionMetrics() {
+      const entries = allTransactions();
+      const totalSoles = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoSoles"), 0);
+      const totalDollars = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoDolares"), 0);
+      const countByType = entries.reduce((counts, entry) => {
+        counts[entry.transaction.tipo] = (counts[entry.transaction.tipo] || 0) + 1;
+        return counts;
+      }, {});
+      const metrics = [
+        ["Movimientos", entries.length, ""],
+        ["Pagos compra", countByType["Pago de compra"] || 0, ""],
+        ["Pagos envío", countByType["Pago de envío"] || 0, ""],
+        ["Otros gastos", countByType["Otros gastos"] || 0, ""],
+        ["Devoluciones", countByType["Devolución"] || 0, ""],
+        ["Neto soles", currency(totalSoles, "S/"), "accent"],
+        ["Neto dólares", currency(totalDollars, "$"), "accent"]
+      ];
+
+      $("#transactionMetrics").innerHTML = metrics.map(([label, value, accent]) => `
+        <article class="metric-card">
+          <span>${escapeHtml(label)}</span>
+          <strong class="${accent}">${escapeHtml(value)}</strong>
+        </article>
+      `).join("");
+    }
+
+    function renderAllTransactionsTable() {
+      const entries = allTransactions();
+      const table = $("#allTransactionsTable");
+      $("#allTransactionsSummary").textContent = `${entries.length} movimiento${entries.length === 1 ? "" : "s"}`;
+
+      if (!entries.length) {
+        table.innerHTML = `<tr><td colspan="10"><div class="empty-state">Aún no hay transacciones registradas.</div></td></tr>`;
+        return;
+      }
+
+      table.innerHTML = entries.map(({ purchase, transaction }) => {
+        const sign = transactionSign(transaction.tipo);
+        const className = sign < 0 ? "ok-text" : "money";
+        return `
+          <tr>
+            <td>${dateLabel(transaction.fecha)}</td>
+            <td>${escapeHtml(purchase.id)}<br><span class="muted">${escapeHtml(purchase.prenda)}</span></td>
+            <td>${escapeHtml(purchase.proveedor)}</td>
+            <td>${escapeHtml(transaction.tipo)}</td>
+            <td class="${className}">${sign < 0 ? "-" : ""}${currency(transaction.montoSoles, "S/")}</td>
+            <td class="${className}">${sign < 0 ? "-" : ""}${currency(transaction.montoDolares, "$")}</td>
+            <td>${escapeHtml(transaction.tipoCambio)}</td>
+            <td>${escapeHtml(transaction.metodoPago)}</td>
+            <td>${escapeHtml(transaction.referencia)}</td>
+            <td><button class="btn small danger" type="button" data-delete-transaction="${escapeHtml(transaction.id)}" data-transaction-purchase="${escapeHtml(purchase.id)}">Eliminar</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderTransactionsTable() {
+      const purchase = getPurchase($("#transactionPurchase").value);
+      const table = $("#transactionsTable");
+
+      if (!purchase) {
+        $("#transactionSummary").textContent = "Sin compra";
+        table.innerHTML = `<tr><td colspan="7"><div class="empty-state">Crea una compra para registrar transacciones.</div></td></tr>`;
+        return;
+      }
+
+      const totalSoles = signedTransactionTotal(purchase, "montoSoles");
+      const totalDollars = signedTransactionTotal(purchase, "montoDolares");
+      $("#transactionSummary").textContent = `${currency(totalSoles, "S/")} · ${currency(totalDollars, "$")}`;
+
+      if (!purchase.transactions.length) {
+        table.innerHTML = `<tr><td colspan="7"><div class="empty-state">Esta compra aún no tiene transacciones.</div></td></tr>`;
+        return;
+      }
+
+      table.innerHTML = [...purchase.transactions]
+        .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
+        .map((transaction) => {
+          const sign = transactionSign(transaction.tipo);
+          const className = sign < 0 ? "ok-text" : "money";
+          return `
+            <tr>
+              <td>${dateLabel(transaction.fecha)}</td>
+              <td>${escapeHtml(transaction.tipo)}</td>
+              <td class="${className}">${sign < 0 ? "-" : ""}${currency(transaction.montoSoles, "S/")}</td>
+              <td class="${className}">${sign < 0 ? "-" : ""}${currency(transaction.montoDolares, "$")}</td>
+              <td>${escapeHtml(transaction.metodoPago)}</td>
+              <td>${escapeHtml(transaction.referencia)}</td>
+              <td><button class="btn small danger" type="button" data-delete-transaction="${escapeHtml(transaction.id)}" data-transaction-purchase="${escapeHtml(purchase.id)}">Eliminar</button></td>
+            </tr>
+          `;
+        }).join("");
+    }
+
+    function renderAll() {
+      renderMetrics();
+      renderPurchasesTable();
+      renderCorroborationTable();
+      renderRecentPurchases();
+      renderActiveTimeline();
+      renderTransactionPurchaseOptions();
+      renderTransactionMetrics();
+      renderTransactionsTable();
+      renderAllTransactionsTable();
+    }
+
+    function switchTab(name) {
+      $$(".tab-btn").forEach((button) => button.classList.toggle("active", button.dataset.tab === name));
+      $$(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === `${name}Panel`));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function syncPurchaseTotals() {
+      const cantidad = numberValue($("#cantidad").value);
+      const costo = numberValue($("#costoUnitarioSoles").value);
+      const rate = numberValue($("#tipoCambioCompra").value);
+      const totalSoles = round2(cantidad * costo);
+      const totalDollars = rate > 0 ? round2(totalSoles / rate) : 0;
+      $("#totalSoles").value = currency(totalSoles, "S/");
+      $("#totalDolares").value = currency(totalDollars, "$");
+    }
+
+    function syncShipmentTotal() {
+      const soles = numberValue($("#costoEnvioSoles").value);
+      const rate = numberValue($("#tipoCambioEnvio").value);
+      $("#costoEnvioDolares").value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
+    }
+
+    function syncArrivalDifference(autoState = true) {
+      updateArrivalSummaryFromRows(autoState);
+    }
+
+    function renderArrivalItemsTable(items) {
+      $("#arrivalItemsTable").innerHTML = items.map((item, index) => `
+        <tr data-index="${index}" data-id="${escapeHtml(item.id)}" data-prenda="${escapeHtml(item.prenda)}" data-color="${escapeHtml(item.color)}" data-talla="${escapeHtml(item.talla)}">
+          <td class="receipt-product">
+            <strong>${escapeHtml(item.prenda)}</strong>
+            <span>${escapeHtml(item.color || "Sin color")} · ${escapeHtml(item.talla || "Sin talla")}</span>
+          </td>
+          <td><input class="receipt-expected" type="number" min="0" step="1" value="${escapeHtml(item.cantidadComprada)}" readonly /></td>
+          <td><input class="receipt-received" type="number" min="0" step="1" value="${escapeHtml(item.cantidadRecibida)}" /></td>
+          <td><input class="receipt-difference" value="${escapeHtml(item.diferencia)}" readonly /></td>
+          <td>
+            <select class="receipt-status">
+              <option value="correcto" ${item.estado === "correcto" ? "selected" : ""}>Correcto</option>
+              <option value="faltante" ${item.estado === "faltante" ? "selected" : ""}>Faltante</option>
+              <option value="sobrante" ${item.estado === "sobrante" ? "selected" : ""}>Sobrante</option>
+              <option value="danado" ${item.estado === "danado" ? "selected" : ""}>Dañado</option>
+            </select>
+          </td>
+          <td><textarea class="receipt-observation" placeholder="Observación de esta prenda, color y talla">${escapeHtml(item.observacion)}</textarea></td>
+        </tr>
+      `).join("");
+      updateArrivalSummaryFromRows(false);
+    }
+
+    function getArrivalItemsFromForm() {
+      return $$("#arrivalItemsTable tr").map((row, index) => {
+        const cantidadComprada = numberValue(row.querySelector(".receipt-expected").value);
+        const cantidadRecibida = numberValue(row.querySelector(".receipt-received").value);
+        const estado = autoArrivalState(cantidadComprada, cantidadRecibida, row.querySelector(".receipt-status").value);
+        return {
+          id: row.dataset.id || `${$("#arrivalPurchaseId").value}-REC-${index + 1}`,
+          prenda: row.dataset.prenda || "",
+          color: row.dataset.color || "",
+          talla: row.dataset.talla || "",
+          cantidadComprada,
+          cantidadRecibida,
+          diferencia: cantidadRecibida - cantidadComprada,
+          estado,
+          observacion: row.querySelector(".receipt-observation").value.trim()
+        };
+      });
+    }
+
+    function updateArrivalRow(row, keepDamaged = true) {
+      const expected = numberValue(row.querySelector(".receipt-expected").value);
+      const received = numberValue(row.querySelector(".receipt-received").value);
+      const statusSelect = row.querySelector(".receipt-status");
+      const difference = received - expected;
+      row.querySelector(".receipt-difference").value = difference;
+      statusSelect.value = autoArrivalState(expected, received, keepDamaged ? statusSelect.value : "");
+    }
+
+    function updateArrivalSummaryFromRows(keepDamaged = true) {
+      $$("#arrivalItemsTable tr").forEach((row) => updateArrivalRow(row, keepDamaged));
+      const items = getArrivalItemsFromForm();
+      const summary = summarizeArrivalItems(items);
+      $("#cantidadEsperada").value = summary.expected;
+      $("#cantidadRecibida").value = summary.received;
+      $("#diferenciaLlegada").value = summary.difference;
+      $("#estadoLlegada").value = summary.state;
+    }
+
+    function syncTransactionTotal() {
+      const soles = numberValue($("#transactionSoles").value);
+      const rate = numberValue($("#transactionRate").value);
+      $("#transactionDollars").value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
+    }
+
+    function resetPurchaseForm() {
+      $("#purchaseForm").reset();
+      $("#purchaseEditId").value = "";
+      $("#formTitle").textContent = "Registrar compra";
+      $("#cantidad").value = 1;
+      $("#tipoCambioCompra").value = DEFAULT_RATE;
+      $("#estadoCompra").value = "completado";
+      $("#fechaCompra").value = today();
+      syncPurchaseTotals();
+    }
+
+    function fillPurchaseForm(purchase) {
+      $("#purchaseEditId").value = purchase.id;
+      $("#proveedor").value = purchase.proveedor;
+      $("#prenda").value = purchase.prenda;
+      $("#categoria").value = purchase.categoria;
+      $("#color").value = purchase.color;
+      $("#talla").value = purchase.talla;
+      $("#cantidad").value = purchase.cantidad;
+      $("#costoUnitarioSoles").value = purchase.costoUnitarioSoles;
+      $("#tipoCambioCompra").value = purchase.tipoCambioCompra;
+      $("#fechaCompra").value = purchase.fechaCompra;
+      $("#estadoCompra").value = purchase.estadoCompra || "completado";
+      $("#observaciones").value = purchase.observaciones;
+      $("#formTitle").textContent = `Editar compra ${purchase.id}`;
+      syncPurchaseTotals();
+      switchTab("form");
+    }
+
+    function buildPurchaseFromForm(existing) {
+      const cantidad = numberValue($("#cantidad").value);
+      const costoUnitarioSoles = numberValue($("#costoUnitarioSoles").value);
+      const tipoCambioCompra = numberValue($("#tipoCambioCompra").value) || DEFAULT_RATE;
+      const totalSoles = round2(cantidad * costoUnitarioSoles);
+
+      return {
+        id: existing?.id || makeId(),
+        proveedor: $("#proveedor").value.trim(),
+        prenda: $("#prenda").value.trim(),
+        categoria: $("#categoria").value.trim(),
+        color: $("#color").value.trim(),
+        talla: $("#talla").value.trim(),
+        cantidad,
+        costoUnitarioSoles,
+        tipoCambioCompra,
+        totalSoles,
+        totalDolares: round2(totalSoles / tipoCambioCompra),
+        fechaCompra: $("#fechaCompra").value,
+        estadoCompra: $("#estadoCompra").value,
+        observaciones: $("#observaciones").value.trim(),
+        envio: existing?.envio || null,
+        llegada: existing?.llegada || null,
+        transactions: existing?.transactions || [],
+        createdAt: existing?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function savePurchaseFromForm(event) {
+      event.preventDefault();
+      const editId = $("#purchaseEditId").value;
+      const existing = editId ? getPurchase(editId) : null;
+      const purchase = buildPurchaseFromForm(existing);
+
+      if (existing) {
+        state.purchases = state.purchases.map((item) => item.id === editId ? purchase : item);
+        state.activeId = purchase.id;
+        toast("Compra actualizada.");
+      } else {
+        state.purchases.unshift(purchase);
+        state.activeId = purchase.id;
+        toast("Compra creada.");
+      }
+
+      saveData();
+      resetPurchaseForm();
+      renderAll();
+      switchTab("purchases");
+    }
+
+    function deletePurchase(id) {
+      const purchase = getPurchase(id);
+      if (!purchase) return;
+      const ok = confirm(`¿Eliminar la compra ${purchase.id} de ${purchase.prenda}?`);
+      if (!ok) return;
+
+      state.purchases = state.purchases.filter((item) => item.id !== id);
+      state.activeId = state.purchases[0]?.id || null;
+      saveData();
+      renderAll();
+      toast("Compra eliminada.");
+    }
+
+    function openShipmentDialog(id) {
+      const purchase = getPurchase(id);
+      if (!purchase) return;
+      state.activeId = id;
+      $("#shipmentPurchaseId").value = id;
+      $("#shipmentSubtitle").textContent = `${purchase.id} · ${purchase.prenda}`;
+      $("#fechaEnvio").value = purchase.envio?.fechaEnvio || today();
+      $("#empresaTransporte").value = purchase.envio?.empresaTransporte || "";
+      $("#numeroGuia").value = purchase.envio?.numeroGuia || "";
+      $("#costoEnvioSoles").value = purchase.envio?.costoEnvioSoles ?? 0;
+      $("#tipoCambioEnvio").value = purchase.envio?.tipoCambioEnvio || purchase.tipoCambioCompra || DEFAULT_RATE;
+      $("#estadoEnvio").value = purchase.envio?.estadoLinea || "completado";
+      $("#observacionesEnvio").value = purchase.envio?.observaciones || "";
+      syncShipmentTotal();
+      $("#shipmentDialog").showModal();
+    }
+
+    function saveShipment(event) {
+      event.preventDefault();
+      const purchase = getPurchase($("#shipmentPurchaseId").value);
+      if (!purchase) return;
+      const costoEnvioSoles = round2($("#costoEnvioSoles").value);
+      const tipoCambioEnvio = numberValue($("#tipoCambioEnvio").value) || purchase.tipoCambioCompra || DEFAULT_RATE;
+      purchase.envio = {
+        fechaEnvio: $("#fechaEnvio").value,
+        empresaTransporte: $("#empresaTransporte").value.trim(),
+        numeroGuia: $("#numeroGuia").value.trim(),
+        costoEnvioSoles,
+        tipoCambioEnvio,
+        costoEnvioDolares: round2(costoEnvioSoles / tipoCambioEnvio),
+        estadoLinea: $("#estadoEnvio").value,
+        observaciones: $("#observacionesEnvio").value.trim()
+      };
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      renderAll();
+      $("#shipmentDialog").close();
+      toast("Envío guardado.");
+    }
+
+    function openArrivalDialog(id) {
+      const purchase = getPurchase(id);
+      if (!purchase) return;
+      state.activeId = id;
+      $("#arrivalPurchaseId").value = id;
+      $("#arrivalSubtitle").textContent = `${purchase.id} · ${purchase.prenda}`;
+      $("#fechaLlegada").value = purchase.llegada?.fechaLlegada || today();
+      renderArrivalItemsTable(arrivalItemsFromPurchase(purchase));
+      $("#observacionesLlegada").value = purchase.llegada?.observaciones || "";
+      syncArrivalDifference(false);
+      $("#arrivalDialog").showModal();
+    }
+
+    function saveArrival(event) {
+      event.preventDefault();
+      const purchase = getPurchase($("#arrivalPurchaseId").value);
+      if (!purchase) return;
+      const items = getArrivalItemsFromForm();
+      const summary = summarizeArrivalItems(items);
+      purchase.llegada = {
+        fechaLlegada: $("#fechaLlegada").value,
+        cantidadEsperada: summary.expected,
+        cantidadRecibida: summary.received,
+        diferencia: summary.difference,
+        estado: summary.state,
+        observaciones: $("#observacionesLlegada").value.trim(),
+        items
+      };
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      renderAll();
+      $("#arrivalDialog").close();
+      toast("Recepción guardada.");
+    }
+
+    function openDetail(id) {
+      const purchase = getPurchase(id);
+      if (!purchase) return;
+      state.activeId = id;
+      $("#detailTitle").textContent = `${purchase.id} · ${purchase.prenda}`;
+      $("#detailSubtitle").textContent = `${purchase.proveedor} · ${statusLabel(currentStatus(purchase))}`;
+      $("#detailBody").innerHTML = `
+        <section class="timeline-panel">
+          <div class="subhead">
+            <h3>Seguimiento visual</h3>
+            <span class="status-badge ${currentStatus(purchase)}">${statusLabel(currentStatus(purchase))}</span>
+          </div>
+          <p class="muted">Compra realizada → Envío realizado → Mercadería recibida</p>
+          ${renderTimeline(purchase)}
+        </section>
+        <div class="detail-grid">
+          ${detailItem("Proveedor", purchase.proveedor)}
+          ${detailItem("Categoría", purchase.categoria)}
+          ${detailItem("Color", purchase.color)}
+          ${detailItem("Talla", purchase.talla)}
+          ${detailItem("Cantidad", purchase.cantidad)}
+          ${detailItem("Costo unitario", currency(purchase.costoUnitarioSoles, "S/"))}
+          ${detailItem("Tipo de cambio", purchase.tipoCambioCompra)}
+          ${detailItem("Total soles", currency(purchase.totalSoles, "S/"))}
+          ${detailItem("Total dólares", currency(purchase.totalDolares, "$"))}
+          ${detailItem("Fecha compra", dateLabel(purchase.fechaCompra))}
+          ${detailItem("Inversión total S/", currency(investmentSoles(purchase), "S/"))}
+          ${detailItem("Inversión total USD", currency(investmentDollars(purchase), "$"))}
+        </div>
+        <div class="content-box" style="box-shadow:none; margin-bottom:14px;">
+          <div class="subhead"><h3>Envío</h3><span class="status-badge ${purchase.envio?.estadoLinea || "pendiente"}">${statusLabel(purchase.envio?.estadoLinea || "pendiente")}</span></div>
+          ${purchase.envio ? `
+            <div class="detail-grid">
+              ${detailItem("Fecha envío", dateLabel(purchase.envio.fechaEnvio))}
+              ${detailItem("Transporte", purchase.envio.empresaTransporte)}
+              ${detailItem("Guía", purchase.envio.numeroGuia)}
+              ${detailItem("Costo envío S/", currency(purchase.envio.costoEnvioSoles, "S/"))}
+              ${detailItem("Tipo cambio", purchase.envio.tipoCambioEnvio)}
+              ${detailItem("Costo envío USD", currency(purchase.envio.costoEnvioDolares, "$"))}
+            </div>
+            <p class="muted">${escapeHtml(purchase.envio.observaciones || "Sin observaciones.")}</p>
+          ` : `<div class="empty-state">Envío pendiente de registrar.</div>`}
+        </div>
+        <div class="content-box" style="box-shadow:none; margin-bottom:14px;">
+          <div class="subhead"><h3>Recepción</h3><span class="status-badge ${purchase.llegada?.estado === "correcto" ? "recibida" : purchase.llegada ? "problema" : "pendiente"}">${purchase.llegada ? arrivalLabel(purchase.llegada.estado) : "Pendiente"}</span></div>
+          ${purchase.llegada ? `
+            <div class="detail-grid">
+              ${detailItem("Fecha llegada", dateLabel(purchase.llegada.fechaLlegada))}
+              ${detailItem("Esperada", purchase.llegada.cantidadEsperada)}
+              ${detailItem("Recibida", purchase.llegada.cantidadRecibida)}
+              ${detailItem("Diferencia", purchase.llegada.diferencia)}
+              ${detailItem("Estado", arrivalLabel(purchase.llegada.estado))}
+            </div>
+            ${arrivalItemsRowsForDetail(purchase)}
+            <p class="muted">${escapeHtml(purchase.llegada.observaciones || "Sin observaciones.")}</p>
+          ` : `<div class="empty-state">Recepción pendiente de registrar.</div>`}
+        </div>
+        <div class="content-box" style="box-shadow:none;">
+          <div class="subhead"><h3>Transacciones</h3><span class="pill">${currency(signedTransactionTotal(purchase, "montoSoles"), "S/")}</span></div>
+          ${transactionRowsForDetail(purchase)}
+        </div>
+        <div class="dialog-actions" style="margin-top:18px;">
+          <button class="btn secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar compra</button>
+          <button class="btn secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Registrar envío</button>
+          <button class="btn secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Registrar recepción</button>
+        </div>
+      `;
+      renderActiveTimeline();
+      $("#detailDialog").showModal();
+    }
+
+    function detailItem(label, value) {
+      return `
+        <div class="detail-item">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value ?? "Pendiente")}</strong>
+        </div>
+      `;
+    }
+
+    function arrivalItemsRowsForDetail(purchase) {
+      const items = arrivalItemsFromPurchase(purchase);
+      if (!items.length) return "";
+
+      return `
+        <div class="table-wrap" style="margin-bottom:12px;">
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Comprado</th>
+                <th>Recibido</th>
+                <th>Diferencia</th>
+                <th>Estado</th>
+                <th>Observación</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((item) => `
+                <tr>
+                  <td class="receipt-product">
+                    <strong>${escapeHtml(item.prenda)}</strong>
+                    <span>${escapeHtml(item.color || "Sin color")} · ${escapeHtml(item.talla || "Sin talla")}</span>
+                  </td>
+                  <td class="money">${escapeHtml(item.cantidadComprada)}</td>
+                  <td class="money">${escapeHtml(item.cantidadRecibida)}</td>
+                  <td class="${item.diferencia < 0 ? "danger-text" : item.diferencia > 0 ? "ok-text" : "money"}">${escapeHtml(item.diferencia)}</td>
+                  <td><span class="status-badge ${escapeHtml(item.estado)}">${arrivalLabel(item.estado)}</span></td>
+                  <td>${escapeHtml(item.observacion || "Sin observación")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function transactionRowsForDetail(purchase) {
+      if (!purchase.transactions.length) {
+        return `<div class="empty-state">Sin transacciones registradas.</div>`;
+      }
+      return `
+        <div class="table-wrap">
+          <table class="compact-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Soles</th>
+                <th>Dólares</th>
+                <th>Método</th>
+                <th>Referencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${purchase.transactions.map((transaction) => `
+                <tr>
+                  <td>${dateLabel(transaction.fecha)}</td>
+                  <td>${escapeHtml(transaction.tipo)}</td>
+                  <td class="money">${currency(transaction.montoSoles, "S/")}</td>
+                  <td class="money">${currency(transaction.montoDolares, "$")}</td>
+                  <td>${escapeHtml(transaction.metodoPago)}</td>
+                  <td>${escapeHtml(transaction.referencia)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function saveTransaction(event) {
+      event.preventDefault();
+      const purchase = getPurchase($("#transactionPurchase").value);
+      if (!purchase) return;
+
+      const montoSoles = round2($("#transactionSoles").value);
+      const tipoCambio = numberValue($("#transactionRate").value) || DEFAULT_RATE;
+      purchase.transactions.push({
+        id: `TX-${Date.now()}`,
+        fecha: $("#transactionDate").value,
+        tipo: $("#transactionType").value,
+        montoSoles,
+        tipoCambio,
+        montoDolares: round2(montoSoles / tipoCambio),
+        metodoPago: $("#transactionMethod").value.trim(),
+        referencia: $("#transactionReference").value.trim(),
+        observacion: $("#transactionObservation").value.trim()
+      });
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      $("#transactionForm").reset();
+      $("#transactionDate").value = today();
+      $("#transactionRate").value = purchase.tipoCambioCompra || DEFAULT_RATE;
+      $("#transactionPurchase").value = purchase.id;
+      syncTransactionTotal();
+      renderAll();
+      switchTab("transactions");
+      toast("Transacción agregada.");
+    }
+
+    function deleteTransaction(transactionId, purchaseId = $("#transactionPurchase").value) {
+      const purchase = getPurchase(purchaseId);
+      if (!purchase) return;
+      const ok = confirm("¿Eliminar esta transacción?");
+      if (!ok) return;
+      purchase.transactions = purchase.transactions.filter((transaction) => transaction.id !== transactionId);
+      purchase.updatedAt = new Date().toISOString();
+      saveData();
+      renderAll();
+      toast("Transacción eliminada.");
+    }
+
+    function exportJson() {
+      const payload = {
+        app: "Gestión de Compras NEOMAR",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        purchases: state.purchases
+      };
+      downloadFile(`compras-neomar-${today()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    }
+
+    function csvEscape(value) {
+      const clean = String(value ?? "").replaceAll('"', '""');
+      return `"${clean}"`;
+    }
+
+    function exportCsv() {
+      const headers = [
+        "ID",
+        "Proveedor",
+        "Prenda",
+        "Categoria",
+        "Color",
+        "Talla",
+        "Cantidad",
+        "Costo unitario soles",
+        "Tipo cambio compra",
+        "Total soles",
+        "Total dolares",
+        "Fecha compra",
+        "Fecha envio",
+        "Fecha llegada",
+        "Estado actual",
+        "Transporte",
+        "Guia",
+        "Costo envio soles",
+        "Costo envio dolares",
+        "Cantidad esperada",
+        "Cantidad recibida",
+        "Diferencia",
+        "Estado llegada",
+        "Detalle corroboracion",
+        "Observaciones"
+      ];
+      const rows = state.purchases.map((purchase) => [
+        purchase.id,
+        purchase.proveedor,
+        purchase.prenda,
+        purchase.categoria,
+        purchase.color,
+        purchase.talla,
+        purchase.cantidad,
+        purchase.costoUnitarioSoles,
+        purchase.tipoCambioCompra,
+        purchase.totalSoles,
+        purchase.totalDolares,
+        purchase.fechaCompra,
+        purchase.envio?.fechaEnvio || "",
+        purchase.llegada?.fechaLlegada || "",
+        statusLabel(currentStatus(purchase)),
+        purchase.envio?.empresaTransporte || "",
+        purchase.envio?.numeroGuia || "",
+        purchase.envio?.costoEnvioSoles || "",
+        purchase.envio?.costoEnvioDolares || "",
+        purchase.llegada?.cantidadEsperada || "",
+        purchase.llegada?.cantidadRecibida || "",
+        purchase.llegada?.diferencia || "",
+        purchase.llegada ? arrivalLabel(purchase.llegada.estado) : "",
+        purchase.llegada?.items?.length
+          ? purchase.llegada.items.map((item) => `${item.prenda} / ${item.color} / ${item.talla}: comprado ${item.cantidadComprada}, recibido ${item.cantidadRecibida}, diferencia ${item.diferencia}, estado ${arrivalLabel(item.estado)}, obs ${item.observacion || "sin observación"}`).join(" | ")
+          : "",
+        purchase.observaciones
+      ]);
+      const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+      downloadFile(`compras-neomar-${today()}.csv`, csv, "text/csv;charset=utf-8");
+    }
+
+    function importJsonFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const purchases = Array.isArray(parsed) ? parsed : parsed.purchases;
+          if (!Array.isArray(purchases)) throw new Error("Formato inválido");
+          const ok = confirm("La importación reemplazará las compras actuales. ¿Continuar?");
+          if (!ok) return;
+          state.purchases = purchases.map(normalizePurchase);
+          state.activeId = state.purchases[0]?.id || null;
+          saveData();
+          renderAll();
+          toast("Datos importados correctamente.");
+        } catch (error) {
+          console.error(error);
+          alert("No se pudo importar el archivo. Revisa que sea un JSON válido de NEOMAR.");
+        } finally {
+          $("#importFile").value = "";
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    function restoreExamples() {
+      const ok = confirm("Esto reemplazará las compras actuales por datos de ejemplo. ¿Continuar?");
+      if (!ok) return;
+      state.purchases = samplePurchases().map(normalizePurchase);
+      state.activeId = state.purchases[0]?.id || null;
+      saveData();
+      renderAll();
+      toast("Datos de ejemplo restaurados.");
+    }
+
+    function handleDocumentClick(event) {
+      const target = event.target.closest("button");
+      if (!target) return;
+
+      if (target.dataset.tabJump) {
+        switchTab(target.dataset.tabJump);
+        return;
+      }
+
+      if (target.dataset.view) {
+        openDetail(target.dataset.view);
+        return;
+      }
+
+      if (target.dataset.edit) {
+        const purchase = getPurchase(target.dataset.edit);
+        if (purchase) {
+          closeDialog("detailDialog");
+          fillPurchaseForm(purchase);
+        }
+        return;
+      }
+
+      if (target.dataset.shipment) {
+        closeDialog("detailDialog");
+        openShipmentDialog(target.dataset.shipment);
+        return;
+      }
+
+      if (target.dataset.arrival) {
+        closeDialog("detailDialog");
+        openArrivalDialog(target.dataset.arrival);
+        return;
+      }
+
+      if (target.dataset.delete) {
+        deletePurchase(target.dataset.delete);
+        return;
+      }
+
+      if (target.dataset.deleteTransaction) {
+        deleteTransaction(target.dataset.deleteTransaction, target.dataset.transactionPurchase);
+        return;
+      }
+
+      if (target.dataset.closeDialog) {
+        closeDialog(target.dataset.closeDialog);
+      }
+    }
+
+    function bindEvents() {
+      $$(".tab-btn").forEach((button) => {
+        button.addEventListener("click", () => switchTab(button.dataset.tab));
+      });
+
+      document.addEventListener("click", handleDocumentClick);
+      $("#newPurchaseTopBtn").addEventListener("click", () => {
+        resetPurchaseForm();
+        switchTab("form");
+      });
+      $("#purchaseForm").addEventListener("submit", savePurchaseFromForm);
+      $("#clearFormBtn").addEventListener("click", resetPurchaseForm);
+      $("#shipmentForm").addEventListener("submit", saveShipment);
+      $("#arrivalForm").addEventListener("submit", saveArrival);
+      $("#transactionForm").addEventListener("submit", saveTransaction);
+      $("#exportJsonBtn").addEventListener("click", exportJson);
+      $("#exportCsvBtn").addEventListener("click", exportCsv);
+      $("#importJsonBtn").addEventListener("click", () => $("#importFile").click());
+      $("#importFile").addEventListener("change", (event) => importJsonFile(event.target.files[0]));
+      $("#restoreExamplesBtn").addEventListener("click", restoreExamples);
+      $("#searchInput").addEventListener("input", (event) => {
+        state.search = event.target.value;
+        renderPurchasesTable();
+      });
+      $("#statusFilter").addEventListener("change", (event) => {
+        state.status = event.target.value;
+        renderPurchasesTable();
+      });
+
+      ["#cantidad", "#costoUnitarioSoles", "#tipoCambioCompra"].forEach((selector) => {
+        $(selector).addEventListener("input", syncPurchaseTotals);
+      });
+      ["#costoEnvioSoles", "#tipoCambioEnvio"].forEach((selector) => {
+        $(selector).addEventListener("input", syncShipmentTotal);
+      });
+      $("#arrivalItemsTable").addEventListener("input", (event) => {
+        if (event.target.matches(".receipt-received, .receipt-observation")) {
+          syncArrivalDifference(true);
+        }
+      });
+      $("#arrivalItemsTable").addEventListener("change", (event) => {
+        if (event.target.matches(".receipt-status")) {
+          syncArrivalDifference(true);
+        }
+      });
+      ["#transactionSoles", "#transactionRate"].forEach((selector) => {
+        $(selector).addEventListener("input", syncTransactionTotal);
+      });
+      $("#transactionPurchase").addEventListener("change", () => {
+        state.activeId = $("#transactionPurchase").value;
+        const purchase = getPurchase(state.activeId);
+        $("#transactionRate").value = purchase?.tipoCambioCompra || DEFAULT_RATE;
+        syncTransactionTotal();
+        renderTransactionsTable();
+        renderActiveTimeline();
+      });
+    }
+
+    function init() {
+      loadData();
+      bindEvents();
+      resetPurchaseForm();
+      $("#transactionDate").value = today();
+      $("#transactionRate").value = state.purchases[0]?.tipoCambioCompra || DEFAULT_RATE;
+      syncTransactionTotal();
+      renderAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
