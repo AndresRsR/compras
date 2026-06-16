@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+�<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -646,10 +646,14 @@
     .status-badge.enviada,
     .status-badge.transferido,
     .status-badge.pagado,
+    .status-badge.recibido_peru,
+    .status-badge.consolidado,
     .status-badge.proceso,
     .timeline-dot.enviada,
     .timeline-dot.transferido,
     .timeline-dot.pagado,
+    .timeline-dot.recibido_peru,
+    .timeline-dot.consolidado,
     .timeline-dot.proceso {
       background: var(--process-bg);
       color: var(--process);
@@ -687,7 +691,7 @@
 
     .timeline {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
       margin: 4px 0 18px;
     }
@@ -821,7 +825,7 @@
 
     .detail-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 12px;
       margin: 14px 0;
     }
@@ -1122,16 +1126,16 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
       <button class="tab-btn" data-tab="purchases" type="button">Compras</button>
-      <button class="tab-btn" data-tab="corroboration" type="button">Corroboración</button>
+      <button class="tab-btn" data-tab="corroboration" type="button">Recepción Ecuador</button>
       <button class="tab-btn" data-tab="form" type="button">Formulario</button>
-      <button class="tab-btn" data-tab="transactions" type="button">Transacciones</button>
+      <button class="tab-btn" data-tab="transactions" type="button">Pagos / gastos</button>
     </nav>
 
     <section class="panel active" id="dashboardPanel">
       <div class="section-head">
         <div>
           <h2>Resumen general</h2>
-          <p>Control rápido de compras, envíos, recepciones y montos convertidos de soles a dólares.</p>
+          <p>Control rápido de pedidos a tiendas de Perú, pagos del intermediario, bultos recibidos, envío a Ecuador y costos en dólares.</p>
         </div>
       </div>
       <div class="metrics" id="metrics"></div>
@@ -1146,7 +1150,7 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Proveedor</th>
+                  <th>Tienda Perú</th>
                   <th>Prenda</th>
                   <th>Total USD</th>
                   <th>Estado</th>
@@ -1170,7 +1174,7 @@
       <div class="section-head">
         <div>
           <h2>Tabla de compras</h2>
-          <p>Busca, edita, elimina y registra el avance de cada compra desde Gamarra hasta la recepción.</p>
+          <p>Busca, edita y registra cada compra desde la tienda en Perú, el pago del intermediario, la recepción en Perú y el ingreso final a Ecuador.</p>
         </div>
         <div class="toolbar">
           <button class="btn soft" data-tab-jump="form" type="button">Crear compra</button>
@@ -1179,17 +1183,19 @@
       <div class="filters">
         <div class="field">
           <label for="searchInput">Buscar</label>
-          <input id="searchInput" type="search" placeholder="Proveedor, prenda, categoría, color, ID..." />
+          <input id="searchInput" type="search" placeholder="Tienda, intermediario, receptor Perú, prenda, categoría, color, ID..." />
         </div>
         <div class="field">
           <label for="statusFilter">Estado</label>
           <select id="statusFilter">
             <option value="todos">Todos</option>
-            <option value="pedido">Pedidos</option>
-            <option value="transferido">Transferidos</option>
-            <option value="pagado">Pagados</option>
-            <option value="enviada">Enviados</option>
-            <option value="recibida">Recibidos</option>
+            <option value="pedido">Pedido a tienda</option>
+            <option value="transferido">Transferido al intermediario</option>
+            <option value="pagado">Pagado a tienda</option>
+            <option value="recibido_peru">Recibido en Perú</option>
+            <option value="consolidado">Consolidado</option>
+            <option value="enviada">Enviado a Ecuador</option>
+            <option value="recibida">Recibido Ecuador</option>
             <option value="problema">Con problemas</option>
           </select>
         </div>
@@ -1200,11 +1206,11 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Proveedor</th>
+                <th>Tienda Perú</th>
                 <th>Prenda</th>
                 <th>Fecha compra</th>
-                <th>Fecha envío</th>
-                <th>Fecha llegada</th>
+                <th>Fecha envío Ecuador</th>
+                <th>Fecha recepción Ecuador</th>
                 <th>Total soles</th>
                 <th>Total dólares</th>
                 <th>Estado actual</th>
@@ -1220,8 +1226,8 @@
     <section class="panel" id="corroborationPanel">
       <div class="section-head">
         <div>
-          <h2>Corroboración de mercadería</h2>
-          <p>Compara lo comprado contra lo recibido por prenda, color y talla. La diferencia y el estado se calculan automáticamente.</p>
+          <h2>Recepción de mercadería en Ecuador</h2>
+          <p>Compara lo comprado en Perú contra lo recibido en Ecuador por prenda, color y talla. La diferencia y el estado se calculan automáticamente.</p>
         </div>
       </div>
       <div class="content-box">
@@ -1230,7 +1236,7 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Proveedor</th>
+                <th>Tienda Perú</th>
                 <th>Producto</th>
                 <th>Comprado</th>
                 <th>Recibido</th>
@@ -1261,13 +1267,21 @@
         </div>
         <div class="form-grid">
           <div class="field provider-field">
-            <label for="proveedor">Proveedor</label>
+            <label for="proveedor">Tienda / proveedor Perú</label>
             <div class="provider-picker">
               <input id="proveedor" list="proveedoresList" required placeholder="Ej. Galeria San Pedro" />
               <button class="btn small soft" id="addProviderBtn" type="button" title="Agregar proveedor al selector">+</button>
               <button class="btn small secondary" id="removeProviderBtn" type="button" title="Eliminar proveedor seleccionado">Eliminar</button>
             </div>
             <datalist id="proveedoresList"></datalist>
+          </div>
+          <div class="field">
+            <label for="intermediario">Intermediario que paga</label>
+            <input id="intermediario" placeholder="Ej. Nombre de quien transfiere" />
+          </div>
+          <div class="field">
+            <label for="receptorPeru">Receptor en Perú</label>
+            <input id="receptorPeru" placeholder="Ej. Persona que recibe bultos" />
           </div>
           <div class="field">
             <label for="prenda">Prenda</label>
@@ -1281,11 +1295,13 @@
           <div class="field">
             <label for="estadoCompra">Estado compra</label>
             <select id="estadoCompra">
-              <option value="pedido">Pedido</option>
-              <option value="transferido">Transferido</option>
-              <option value="pagado">Pagado</option>
-              <option value="enviada">Enviado</option>
-              <option value="recibida">Recibido</option>
+              <option value="pedido">Pedido a tienda</option>
+              <option value="transferido">Transferido al intermediario</option>
+              <option value="pagado">Pagado a tienda</option>
+              <option value="recibido_peru">Recibido en Perú</option>
+              <option value="consolidado">Consolidado en bulto</option>
+              <option value="enviada">Enviado a Ecuador</option>
+              <option value="recibida">Recibido Ecuador</option>
             </select>
           </div>
           <div class="field span-4 purchase-lines-field">
@@ -1458,7 +1474,7 @@
               <tr>
                 <th>Fecha</th>
                 <th>Compra</th>
-                <th>Proveedor</th>
+                <th>Tienda Perú</th>
                 <th>Tipo</th>
                 <th>Soles</th>
                 <th>Dólares</th>
@@ -1492,7 +1508,7 @@
     <div class="dialog-shell">
       <div class="dialog-head">
         <div>
-          <h2>Registrar envío</h2>
+          <h2>Registrar consolidado/envío Ecuador</h2>
           <p id="shipmentSubtitle"></p>
         </div>
         <button class="btn ghost" type="button" data-close-dialog="shipmentDialog">Cerrar</button>
@@ -1501,7 +1517,7 @@
         <input type="hidden" id="shipmentPurchaseId" />
         <div class="form-grid">
           <div class="field">
-            <label for="fechaEnvio">Fecha de envío</label>
+            <label for="fechaEnvio">Fecha de envío a Ecuador</label>
             <input id="fechaEnvio" type="date" required />
           </div>
           <div class="field">
@@ -1513,7 +1529,7 @@
             <input id="numeroGuia" placeholder="Guía o tracking" />
           </div>
           <div class="field">
-            <label for="estadoEnvio">Estado del envío</label>
+            <label for="estadoEnvio">Estado del envío a Ecuador</label>
             <select id="estadoEnvio">
               <option value="completado">Completado</option>
               <option value="proceso">En proceso</option>
@@ -1522,7 +1538,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="costoEnvioSoles">Costo de envío S/</label>
+            <label for="costoEnvioSoles">Costo de consolidado/envío S/</label>
             <input id="costoEnvioSoles" type="number" min="0" step="0.01" required />
           </div>
           <div class="field">
@@ -1535,11 +1551,11 @@
           </div>
           <div class="field span-4">
             <label for="observacionesEnvio">Observaciones</label>
-            <textarea id="observacionesEnvio" placeholder="Notas de envío, horarios, contacto, incidencia..."></textarea>
+            <textarea id="observacionesEnvio" placeholder="Notas de consolidación, transporte, contacto o incidencia..."></textarea>
           </div>
         </div>
         <div class="dialog-actions" style="margin-top: 18px;">
-          <button class="btn" type="submit">Guardar envío</button>
+          <button class="btn" type="submit">Guardar envío Ecuador</button>
           <button class="btn secondary" type="button" data-close-dialog="shipmentDialog">Cancelar</button>
         </div>
       </form>
@@ -1550,7 +1566,7 @@
     <div class="dialog-shell">
       <div class="dialog-head">
         <div>
-          <h2>Registrar recepción</h2>
+          <h2>Registrar recepción Ecuador</h2>
           <p id="arrivalSubtitle"></p>
         </div>
         <button class="btn ghost" type="button" data-close-dialog="arrivalDialog">Cerrar</button>
@@ -1559,7 +1575,7 @@
         <input type="hidden" id="arrivalPurchaseId" />
         <div class="form-grid">
           <div class="field">
-            <label for="fechaLlegada">Fecha de llegada</label>
+            <label for="fechaLlegada">Fecha de recepción Ecuador</label>
             <input id="fechaLlegada" type="date" required />
           </div>
           <div class="field">
@@ -1588,7 +1604,7 @@
             <textarea id="observacionesLlegada" placeholder="Control de calidad, unidades faltantes, daños o diferencias"></textarea>
           </div>
           <div class="field span-4">
-            <label>Corroboración por prenda, color y talla</label>
+            <label>Recepción Ecuador por prenda, color y talla</label>
             <div class="table-wrap">
               <table class="receipt-table">
                 <thead>
@@ -1607,7 +1623,7 @@
           </div>
         </div>
         <div class="dialog-actions" style="margin-top: 18px;">
-          <button class="btn" type="submit">Guardar recepción</button>
+          <button class="btn" type="submit">Guardar recepción Ecuador</button>
           <button class="btn secondary" type="button" data-close-dialog="arrivalDialog">Cancelar</button>
         </div>
       </form>
@@ -1727,6 +1743,9 @@
         pedido: "pedido",
         transferido: "transferido",
         pagado: "pagado",
+        recibido_peru: "recibido_peru",
+        "recibido peru": "recibido_peru",
+        consolidado: "consolidado",
         problema: "problema"
       }[value] || "pedido";
     }
@@ -2052,6 +2071,8 @@
       return {
         id: normalizedId,
         proveedor: purchase.proveedor || "",
+        intermediario: purchase.intermediario || "",
+        receptorPeru: purchase.receptorPeru || purchase.receptor || "",
         prenda: purchase.prenda || "",
         categoria: purchase.categoria || "",
         color: itemSummary.color || purchase.color || "",
@@ -2142,19 +2163,19 @@
       if (purchase.llegada?.fechaLlegada) {
         return purchase.llegada.estado === "correcto" ? "recibida" : "problema";
       }
-      if (purchase.envio?.fechaEnvio) {
-        return purchase.envio.estadoLinea === "problema" ? "problema" : "enviada";
-      }
+      if (purchase.envio?.fechaEnvio) return "enviada";
       return normalizePurchaseStatus(purchase.estadoCompra);
     }
 
     function statusLabel(status) {
       return {
-        pedido: "Pedido",
-        transferido: "Transferido",
-        pagado: "Pagado",
-        enviada: "Enviado",
-        recibida: "Recibido",
+        pedido: "Pedido a tienda",
+        transferido: "Transferido al intermediario",
+        pagado: "Pagado a tienda",
+        recibido_peru: "Recibido en Perú",
+        consolidado: "Consolidado en bulto",
+        enviada: "Enviado a Ecuador",
+        recibida: "Recibido Ecuador",
         pendiente: "Pendiente",
         problema: "Con problema",
         proceso: "En proceso",
@@ -2172,33 +2193,40 @@
     }
 
     function timelineSteps(purchase) {
-      const shipmentStatus = purchase.envio?.estadoLinea || "pendiente";
-      let arrivalStatus = "pendiente";
-      if (purchase.llegada?.fechaLlegada) {
-        arrivalStatus = purchase.llegada.estado === "correcto" ? "completado" : "problema";
-      } else if (purchase.envio?.fechaEnvio) {
-        arrivalStatus = "proceso";
-      }
+      const baseStatus = normalizePurchaseStatus(purchase.estadoCompra);
+      const paidStatus = ["pagado", "recibido_peru", "consolidado", "enviada", "recibida"].includes(baseStatus) ? "pagado" : baseStatus;
+      const peruStatus = ["recibido_peru", "consolidado", "enviada", "recibida"].includes(baseStatus) ? "recibido_peru" : "pendiente";
+      const consolidatedStatus = ["consolidado", "enviada", "recibida"].includes(baseStatus) ? "consolidado" : "pendiente";
+      const shipmentStatus = purchase.envio?.fechaEnvio || ["enviada", "recibida"].includes(baseStatus) ? "enviada" : "pendiente";
+      const arrivalStatus = purchase.llegada?.fechaLlegada
+        ? (purchase.llegada.estado === "correcto" ? "recibida" : "problema")
+        : (baseStatus === "recibida" ? "recibida" : "pendiente");
 
       return [
         {
-          title: "Compra realizada",
-          status: purchase.estadoCompra || "completado",
-          meta: `${dateLabel(purchase.fechaCompra)} · ${currency(purchase.totalSoles, "S/")}`
+          title: "Pedido a tienda",
+          status: baseStatus === "pedido" ? "pedido" : "pagado",
+          meta: `${dateLabel(purchase.fechaCompra)} · ${purchase.proveedor || "Tienda sin nombre"}`
         },
         {
-          title: "Envío realizado",
-          status: shipmentStatus,
-          meta: purchase.envio
-            ? `${dateLabel(purchase.envio.fechaEnvio)} · ${purchase.envio.empresaTransporte || "Sin transporte"}`
-            : "Aún no registrado"
+          title: "Pago por intermediario",
+          status: paidStatus,
+          meta: purchase.intermediario ? `Intermediario: ${purchase.intermediario}` : "Registra quien paga las transferencias"
         },
         {
-          title: "Mercadería recibida",
+          title: "Recepción en Perú",
+          status: peruStatus,
+          meta: purchase.receptorPeru ? `Recibe: ${purchase.receptorPeru}` : "Pendiente de confirmar bultos"
+        },
+        {
+          title: "Consolidado y envío",
+          status: consolidatedStatus === "consolidado" && shipmentStatus === "enviada" ? "enviada" : consolidatedStatus,
+          meta: purchase.envio ? `${dateLabel(purchase.envio.fechaEnvio)} · ${purchase.envio.empresaTransporte || "Envío registrado"}` : "Pendiente de consolidar/enviar"
+        },
+        {
+          title: "Recibido Ecuador",
           status: arrivalStatus,
-          meta: purchase.llegada
-            ? `${dateLabel(purchase.llegada.fechaLlegada)} · ${arrivalLabel(purchase.llegada.estado)}`
-            : "Pendiente de recepción"
+          meta: purchase.llegada ? `${dateLabel(purchase.llegada.fechaLlegada)} · ${arrivalLabel(purchase.llegada.estado)}` : "Pendiente de ingreso a inventario"
         }
       ];
     }
@@ -2244,7 +2272,7 @@
       const statusCounts = state.purchases.reduce((counts, purchase) => {
         counts[currentStatus(purchase)] += 1;
         return counts;
-      }, { pedido: 0, transferido: 0, pagado: 0, enviada: 0, recibida: 0, problema: 0 });
+      }, { pedido: 0, transferido: 0, pagado: 0, recibido_peru: 0, consolidado: 0, enviada: 0, recibida: 0, problema: 0 });
 
       return {
         total: state.purchases.length,
@@ -2262,9 +2290,11 @@
         ["Total convertido USD", currency(stats.dollars, "$"), "accent"],
         ["Pedidos", stats.pedido, ""],
         ["Transferidos", stats.transferido, ""],
-        ["Pagados", stats.pagado, ""],
-        ["Enviados", stats.enviada, ""],
-        ["Recibidos", stats.recibida, ""],
+        ["Pagados a tienda", stats.pagado, ""],
+        ["Recibidos Perú", stats.recibido_peru, ""],
+        ["Consolidados", stats.consolidado, ""],
+        ["Enviados Ecuador", stats.enviada, ""],
+        ["Recibidos Ecuador", stats.recibida, ""],
         ["Con problemas", stats.problema, ""]
       ];
 
@@ -2285,6 +2315,8 @@
           const haystack = [
             purchase.id,
             purchase.proveedor,
+            purchase.intermediario,
+            purchase.receptorPeru,
             purchase.prenda,
             purchase.categoria,
             purchase.color,
@@ -2327,8 +2359,8 @@
               <div class="row-actions">
                 <button class="btn small secondary" type="button" data-view="${escapeHtml(purchase.id)}">Ver</button>
                 <button class="btn small secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar</button>
-                <button class="btn small secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Marcar envío</button>
-                <button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Marcar recibido</button>
+                <button class="btn small secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Envío Ecuador</button>
+                <button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Recibir Ecuador</button>
                 <button class="btn small danger" type="button" data-delete="${escapeHtml(purchase.id)}">Eliminar</button>
               </div>
             </td>
@@ -2355,7 +2387,7 @@
         });
 
       if (!rows.length) {
-        table.innerHTML = `<tr><td colspan="9"><div class="empty-state">Aún no hay compras para corroborar.</div></td></tr>`;
+        table.innerHTML = `<tr><td colspan="9"><div class="empty-state">Aun no hay compras para recibir en Ecuador.</div></td></tr>`;
         return;
       }
 
@@ -2374,8 +2406,8 @@
             <td class="money">${hasArrival ? escapeHtml(item.cantidadRecibida) : "Sin registrar"}</td>
             <td class="${item.diferencia < 0 ? "danger-text" : item.diferencia > 0 ? "ok-text" : "money"}">${hasArrival ? escapeHtml(item.diferencia) : "Pendiente"}</td>
             <td><span class="status-badge ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span></td>
-            <td>${escapeHtml(hasArrival ? (item.observacion || purchase.llegada?.observaciones || "Sin observación") : "Recepción pendiente")}</td>
-            <td><button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">${hasArrival ? "Editar recepción" : "Corroborar"}</button></td>
+            <td>${escapeHtml(hasArrival ? (item.observacion || purchase.llegada?.observaciones || "Sin observación") : "Recepción Ecuador pendiente")}</td>
+            <td><button class="btn small secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">${hasArrival ? "Editar recepcion" : "Recibir Ecuador"}</button></td>
           </tr>
         `;
       }).join("");
@@ -2644,6 +2676,8 @@
     function fillPurchaseForm(purchase) {
       $("#purchaseEditId").value = purchase.id;
       $("#proveedor").value = purchase.proveedor;
+      $("#intermediario").value = purchase.intermediario || "";
+      $("#receptorPeru").value = purchase.receptorPeru || "";
       $("#prenda").value = purchase.prenda;
       $("#categoria").value = purchase.categoria;
       renderPurchaseLines(purchase.items?.length ? purchase.items : purchaseItemsFromPurchase(purchase));
@@ -2674,6 +2708,8 @@
       return {
         id: existing?.id || makeId(),
         proveedor: $("#proveedor").value.trim(),
+        intermediario: $("#intermediario").value.trim(),
+        receptorPeru: $("#receptorPeru").value.trim(),
         prenda: $("#prenda").value.trim(),
         categoria: $("#categoria").value.trim(),
         color: itemSummary.color,
@@ -2770,7 +2806,7 @@
       saveData();
       renderAll();
       $("#shipmentDialog").close();
-      toast("Envío guardado.");
+      toast("Envío Ecuador guardado.");
     }
 
     function openArrivalDialog(id) {
@@ -2806,7 +2842,7 @@
       saveData();
       renderAll();
       $("#arrivalDialog").close();
-      toast("Recepción guardada.");
+      toast("Recepción Ecuador guardada.");
     }
 
     function openDetail(id) {
@@ -2821,11 +2857,13 @@
             <h3>Seguimiento visual</h3>
             <span class="status-badge ${currentStatus(purchase)}">${statusLabel(currentStatus(purchase))}</span>
           </div>
-          <p class="muted">Compra realizada → Envío realizado → Mercadería recibida</p>
+          <p class="muted">Pedido a tienda -> pago por intermediario -> recepción Perú -> consolidado/envío -> recibido Ecuador</p>
           ${renderTimeline(purchase)}
         </section>
         <div class="detail-grid">
-          ${detailItem("Proveedor", purchase.proveedor)}
+          ${detailItem("Tienda Perú", purchase.proveedor)}
+          ${detailItem("Intermediario", purchase.intermediario || "Pendiente")}
+          ${detailItem("Receptor Perú", purchase.receptorPeru || "Pendiente")}
           ${detailItem("Categoría", purchase.categoria)}
           ${detailItem("Color", purchase.color)}
           ${detailItem("Talla", purchase.talla)}
@@ -2840,32 +2878,32 @@
         </div>
         ${purchaseItemsRowsForDetail(purchase)}
         <div class="content-box" style="box-shadow:none; margin-bottom:14px;">
-          <div class="subhead"><h3>Envío</h3><span class="status-badge ${purchase.envio?.estadoLinea || "pendiente"}">${statusLabel(purchase.envio?.estadoLinea || "pendiente")}</span></div>
+          <div class="subhead"><h3>Consolidado y envío a Ecuador</h3><span class="status-badge ${purchase.envio?.estadoLinea || "pendiente"}">${statusLabel(purchase.envio?.estadoLinea || "pendiente")}</span></div>
           ${purchase.envio ? `
             <div class="detail-grid">
-              ${detailItem("Fecha envío", dateLabel(purchase.envio.fechaEnvio))}
+              ${detailItem("Fecha envío Ecuador", dateLabel(purchase.envio.fechaEnvio))}
               ${detailItem("Transporte", purchase.envio.empresaTransporte)}
               ${detailItem("Guía", purchase.envio.numeroGuia)}
               ${detailItem("Costo envío S/", currency(purchase.envio.costoEnvioSoles, "S/"))}
               ${detailItem("Tipo cambio", purchase.envio.tipoCambioEnvio)}
               ${detailItem("Costo envío USD", currency(purchase.envio.costoEnvioDolares, "$"))}
             </div>
-            <p class="muted">${escapeHtml(purchase.envio.observaciones || "Sin observaciones.")}</p>
-          ` : `<div class="empty-state">Envío pendiente de registrar.</div>`}
+            <p class="muted">${escapeHtml(purchase.envio.observaciones || "Sin observaciónes.")}</p>
+          ` : `<div class="empty-state">Consolidación/envío pendiente de registrar.</div>`}
         </div>
         <div class="content-box" style="box-shadow:none; margin-bottom:14px;">
-          <div class="subhead"><h3>Recepción</h3><span class="status-badge ${purchase.llegada?.estado === "correcto" ? "recibida" : purchase.llegada ? "problema" : "pendiente"}">${purchase.llegada ? arrivalLabel(purchase.llegada.estado) : "Pendiente"}</span></div>
+          <div class="subhead"><h3>Recepción final en Ecuador</h3><span class="status-badge ${purchase.llegada?.estado === "correcto" ? "recibida" : purchase.llegada ? "problema" : "pendiente"}">${purchase.llegada ? arrivalLabel(purchase.llegada.estado) : "Pendiente"}</span></div>
           ${purchase.llegada ? `
             <div class="detail-grid">
-              ${detailItem("Fecha llegada", dateLabel(purchase.llegada.fechaLlegada))}
+              ${detailItem("Fecha recepción Ecuador", dateLabel(purchase.llegada.fechaLlegada))}
               ${detailItem("Esperada", purchase.llegada.cantidadEsperada)}
               ${detailItem("Recibida", purchase.llegada.cantidadRecibida)}
               ${detailItem("Diferencia", purchase.llegada.diferencia)}
               ${detailItem("Estado", arrivalLabel(purchase.llegada.estado))}
             </div>
             ${arrivalItemsRowsForDetail(purchase)}
-            <p class="muted">${escapeHtml(purchase.llegada.observaciones || "Sin observaciones.")}</p>
-          ` : `<div class="empty-state">Recepción pendiente de registrar.</div>`}
+            <p class="muted">${escapeHtml(purchase.llegada.observaciones || "Sin observaciónes.")}</p>
+          ` : `<div class="empty-state">Recepción en Ecuador pendiente de registrar.</div>`}
         </div>
         <div class="content-box" style="box-shadow:none;">
           <div class="subhead"><h3>Transacciones</h3><span class="pill">${currency(signedTransactionTotal(purchase, "montoSoles"), "S/")}</span></div>
@@ -2873,8 +2911,8 @@
         </div>
         <div class="dialog-actions" style="margin-top:18px;">
           <button class="btn secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar compra</button>
-          <button class="btn secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Registrar envío</button>
-          <button class="btn secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Registrar recepción</button>
+          <button class="btn secondary" type="button" data-shipment="${escapeHtml(purchase.id)}">Registrar envío Ecuador</button>
+          <button class="btn secondary" type="button" data-arrival="${escapeHtml(purchase.id)}">Recibir Ecuador</button>
         </div>
       `;
       renderActiveTimeline();
@@ -3048,7 +3086,9 @@
     function exportCsv() {
       const headers = [
         "ID",
-        "Proveedor",
+        "Tienda Perú",
+        "Intermediario",
+        "Receptor Perú",
         "Prenda",
         "Categoria",
         "Color",
@@ -3058,25 +3098,27 @@
         "Costo unitario soles",
         "Tipo cambio compra",
         "Total soles",
-        "Total dolares",
+        "Total dólares",
         "Fecha compra",
-        "Fecha envio",
-        "Fecha llegada",
+        "Fecha envío",
+        "Fecha recepción Ecuador",
         "Estado actual",
         "Transporte",
         "Guia",
-        "Costo envio soles",
-        "Costo envio dolares",
+        "Costo envío soles",
+        "Costo envío dólares",
         "Cantidad esperada",
         "Cantidad recibida",
         "Diferencia",
         "Estado llegada",
-        "Detalle corroboracion",
+        "Detalle recepción Ecuador",
         "Observaciones"
       ];
       const rows = state.purchases.map((purchase) => [
         purchase.id,
         purchase.proveedor,
+        purchase.intermediario || "",
+        purchase.receptorPeru || "",
         purchase.prenda,
         purchase.categoria,
         purchase.color,
@@ -3305,3 +3347,6 @@
   </script>
 </body>
 </html>
+
+
+
