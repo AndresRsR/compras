@@ -492,7 +492,7 @@
 
     .purchase-quick-entry {
       display: grid;
-      grid-template-columns: minmax(180px, 1.15fr) minmax(140px, 0.85fr) 110px auto;
+      grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.15fr) 110px auto;
       gap: 10px;
       align-items: end;
     }
@@ -525,6 +525,13 @@
     .size-chip:hover {
       border-color: var(--pink-strong);
       color: var(--ink);
+    }
+
+    .size-chip.active {
+      background: var(--black);
+      border-color: var(--black);
+      color: var(--surface);
+      box-shadow: 0 8px 18px rgba(17, 17, 17, 0.16);
     }
 
     .purchase-lines-list {
@@ -1292,33 +1299,24 @@
                   <label for="quickColor">Color</label>
                   <input id="quickColor" placeholder="Ej. Blanco" autocomplete="off" />
                 </div>
-                <div class="field">
-                  <label for="quickTalla">Talla</label>
-                  <input id="quickTalla" list="tallasCompraList" placeholder="Ej. S" autocomplete="off" />
-                  <datalist id="tallasCompraList">
-                    <option value="S"></option>
-                    <option value="M"></option>
-                    <option value="L"></option>
-                    <option value="XL"></option>
-                    <option value="Unica"></option>
-                    <option value="EST (S/M)"></option>
-                    <option value="EST (M/L)"></option>
-                  </datalist>
+                <div class="field quick-size-field">
+                  <label>Talla</label>
+                  <input id="quickTalla" type="hidden" />
+                  <div class="quick-size-buttons" aria-label="Tallas frecuentes">
+                    <button class="size-chip" type="button" data-quick-size="S">S</button>
+                    <button class="size-chip" type="button" data-quick-size="M">M</button>
+                    <button class="size-chip" type="button" data-quick-size="L">L</button>
+                    <button class="size-chip" type="button" data-quick-size="XL">XL</button>
+                    <button class="size-chip" type="button" data-quick-size="Unica">Unica</button>
+                    <button class="size-chip" type="button" data-quick-size="EST (S/M)">EST S/M</button>
+                    <button class="size-chip" type="button" data-quick-size="EST (M/L)">EST M/L</button>
+                  </div>
                 </div>
                 <div class="field">
                   <label for="quickQty">Cantidad</label>
                   <input id="quickQty" type="number" min="1" step="1" value="1" />
                 </div>
                 <button class="btn soft" id="addPurchaseLineBtn" type="button">Agregar</button>
-              </div>
-              <div class="quick-size-buttons" aria-label="Tallas frecuentes">
-                <button class="size-chip" type="button" data-quick-size="S">S</button>
-                <button class="size-chip" type="button" data-quick-size="M">M</button>
-                <button class="size-chip" type="button" data-quick-size="L">L</button>
-                <button class="size-chip" type="button" data-quick-size="XL">XL</button>
-                <button class="size-chip" type="button" data-quick-size="Unica">Unica</button>
-                <button class="size-chip" type="button" data-quick-size="EST (S/M)">EST S/M</button>
-                <button class="size-chip" type="button" data-quick-size="EST (M/L)">EST M/L</button>
               </div>
               <div class="purchase-line-labels">
                 <span>Color</span>
@@ -1807,6 +1805,13 @@
       syncPurchaseLineSummary();
     }
 
+    function setQuickSize(value = "") {
+      const size = cleanText(value);
+      $("#quickTalla").value = size;
+      $$("[data-quick-size]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.quickSize === size);
+      });
+    }
     function addQuickPurchaseLine() {
       const color = cleanText($("#quickColor").value);
       const talla = cleanText($("#quickTalla").value);
@@ -1821,7 +1826,7 @@
       if (existing) existing.cantidad += cantidad;
       else items.push({ color, talla, cantidad });
       renderPurchaseLines(items);
-      $("#quickTalla").value = "";
+      setQuickSize("");
       $("#quickQty").value = 1;
       $("#quickColor").select();
     }
@@ -2630,7 +2635,7 @@
       $("#estadoCompra").value = "pedido";
       $("#fechaCompra").value = today();
       $("#quickColor").value = "";
-      $("#quickTalla").value = "";
+      setQuickSize("");
       $("#quickQty").value = 1;
       renderPurchaseLines([]);
       syncPurchaseTotals();
@@ -3205,7 +3210,7 @@
       $("#addProviderBtn").addEventListener("click", addProviderFromInput);
       $("#removeProviderBtn").addEventListener("click", removeProviderFromInput);
       $("#addPurchaseLineBtn").addEventListener("click", addQuickPurchaseLine);
-      ["#quickColor", "#quickTalla", "#quickQty"].forEach((selector) => {
+      ["#quickColor", "#quickQty"].forEach((selector) => {
         $(selector).addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
@@ -3215,7 +3220,7 @@
       });
       $$("[data-quick-size]").forEach((button) => {
         button.addEventListener("click", () => {
-          $("#quickTalla").value = button.dataset.quickSize;
+          setQuickSize(button.dataset.quickSize);
           $("#quickQty").focus();
           $("#quickQty").select();
         });
