@@ -452,7 +452,136 @@
     .form-grid .span-4 {
       grid-column: 1 / -1;
     }
+
+    .purchase-lines-field {
+      gap: 10px;
+    }
 
+    .purchase-lines-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .purchase-lines {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: linear-gradient(180deg, #fffaf7, #fff);
+    }
+
+    .purchase-quick-entry {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.15fr) minmax(140px, 0.85fr) 110px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .purchase-quick-entry .field {
+      gap: 5px;
+    }
+
+    .purchase-quick-entry input {
+      min-height: 40px;
+    }
+
+    .quick-size-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .size-chip {
+      min-height: 30px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .size-chip:hover {
+      border-color: var(--pink-strong);
+      color: var(--ink);
+    }
+
+    .purchase-lines-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .purchase-line-row,
+    .purchase-line-labels {
+      display: grid;
+      grid-template-columns: minmax(150px, 1.2fr) minmax(110px, 0.8fr) 122px 38px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .purchase-line-labels {
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0 4px;
+    }
+
+    .purchase-line-row {
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+
+    .purchase-line-row input {
+      min-height: 34px;
+      padding: 7px 9px;
+    }
+
+    .qty-stepper {
+      display: grid;
+      grid-template-columns: 30px 1fr 30px;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .qty-stepper input {
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .qty-stepper button,
+    .line-remove-btn {
+      min-height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff6f8;
+      color: var(--pink-strong);
+      font-weight: 900;
+    }
+
+    .line-remove-btn {
+      color: var(--danger);
+      background: #fff7f5;
+    }
+
+    .purchase-lines-empty {
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      text-align: center;
+    }
     .subhead {
       margin: 4px 0 14px;
       padding-bottom: 10px;
@@ -1136,20 +1265,49 @@
           <div class="field span-4 purchase-lines-field">
             <div class="purchase-lines-head">
               <label>Colores / tallas / cantidad comprada</label>
-              <button class="btn small soft" id="addPurchaseLineBtn" type="button">+ Agregar color</button>
+              <span class="pill" id="purchaseLinesTotal">0 unidades</span>
             </div>
             <div class="purchase-lines">
+              <div class="purchase-quick-entry">
+                <div class="field">
+                  <label for="quickColor">Color</label>
+                  <input id="quickColor" placeholder="Ej. Blanco" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label for="quickTalla">Talla</label>
+                  <input id="quickTalla" list="tallasCompraList" placeholder="Ej. S" autocomplete="off" />
+                  <datalist id="tallasCompraList">
+                    <option value="S"></option>
+                    <option value="M"></option>
+                    <option value="L"></option>
+                    <option value="XL"></option>
+                    <option value="Unica"></option>
+                    <option value="EST (S/M)"></option>
+                    <option value="EST (M/L)"></option>
+                  </datalist>
+                </div>
+                <div class="field">
+                  <label for="quickQty">Cantidad</label>
+                  <input id="quickQty" type="number" min="1" step="1" value="1" />
+                </div>
+                <button class="btn soft" id="addPurchaseLineBtn" type="button">Agregar</button>
+              </div>
+              <div class="quick-size-buttons" aria-label="Tallas frecuentes">
+                <button class="size-chip" type="button" data-quick-size="S">S</button>
+                <button class="size-chip" type="button" data-quick-size="M">M</button>
+                <button class="size-chip" type="button" data-quick-size="L">L</button>
+                <button class="size-chip" type="button" data-quick-size="XL">XL</button>
+                <button class="size-chip" type="button" data-quick-size="Unica">Unica</button>
+                <button class="size-chip" type="button" data-quick-size="EST (S/M)">EST S/M</button>
+                <button class="size-chip" type="button" data-quick-size="EST (M/L)">EST M/L</button>
+              </div>
               <div class="purchase-line-labels">
                 <span>Color</span>
                 <span>Talla</span>
                 <span>Cantidad</span>
                 <span></span>
               </div>
-              <div id="purchaseLinesBody"></div>
-              <div class="purchase-line-total">
-                <span>Total comprado</span>
-                <strong id="purchaseLinesTotal">0 unidades</strong>
-              </div>
+              <div class="purchase-lines-list" id="purchaseLinesBody"></div>
             </div>
             <input id="color" type="hidden" />
             <input id="talla" type="hidden" />
@@ -1607,10 +1765,14 @@
     function purchaseLineRowHtml(item = {}, index = 0) {
       return `
         <div class="purchase-line-row" data-id="${escapeHtml(item.id || "")}">
-          <input class="purchase-line-color" value="${escapeHtml(item.color || "")}" placeholder="Ej. Rosado" />
-          <input class="purchase-line-talla" value="${escapeHtml(item.talla || "")}" placeholder="Ej. S, M, L" />
-          <input class="purchase-line-qty" type="number" min="0" step="1" value="${escapeHtml(item.cantidad ?? (index === 0 ? 1 : 0))}" />
-          <button class="btn small secondary" type="button" data-remove-purchase-line aria-label="Eliminar color">x</button>
+          <input class="purchase-line-color" value="${escapeHtml(item.color || "")}" placeholder="Color" />
+          <input class="purchase-line-talla" value="${escapeHtml(item.talla || "")}" placeholder="Talla" />
+          <div class="qty-stepper">
+            <button type="button" data-line-qty="-1" aria-label="Disminuir cantidad">-</button>
+            <input class="purchase-line-qty" type="number" min="0" step="1" value="${escapeHtml(item.cantidad ?? 1)}" />
+            <button type="button" data-line-qty="1" aria-label="Aumentar cantidad">+</button>
+          </div>
+          <button class="line-remove-btn" type="button" data-remove-purchase-line aria-label="Eliminar color">x</button>
         </div>
       `;
     }
@@ -1618,9 +1780,30 @@
     function renderPurchaseLines(lines = []) {
       const body = $("#purchaseLinesBody");
       if (!body) return;
-      const items = lines.length ? lines : [{ color: "", talla: "", cantidad: 1 }];
-      body.innerHTML = items.map(purchaseLineRowHtml).join("");
+      const items = lines.filter((item) => item.color || item.talla || numberValue(item.cantidad) > 0);
+      body.innerHTML = items.length
+        ? items.map(purchaseLineRowHtml).join("")
+        : `<div class="purchase-lines-empty">Agrega color, talla y cantidad con el formulario superior.</div>`;
       syncPurchaseLineSummary();
+    }
+
+    function addQuickPurchaseLine() {
+      const color = cleanText($("#quickColor").value);
+      const talla = cleanText($("#quickTalla").value);
+      const cantidad = Math.max(1, Math.trunc(numberValue($("#quickQty").value)) || 1);
+      if (!color || !talla) {
+        toast("Escribe color y talla antes de agregar.");
+        (!color ? $("#quickColor") : $("#quickTalla")).focus();
+        return;
+      }
+      const items = getPurchaseLinesFromForm();
+      const existing = items.find((item) => item.color.toLowerCase() === color.toLowerCase() && item.talla.toLowerCase() === talla.toLowerCase());
+      if (existing) existing.cantidad += cantidad;
+      else items.push({ color, talla, cantidad });
+      renderPurchaseLines(items);
+      $("#quickTalla").value = "";
+      $("#quickQty").value = 1;
+      $("#quickColor").select();
     }
 
     function syncPurchaseLineSummary() {
@@ -2547,7 +2730,10 @@
       $("#tipoCambioCompra").value = DEFAULT_RATE;
       $("#estadoCompra").value = "pedido";
       $("#fechaCompra").value = today();
-      renderPurchaseLines([{ color: "", talla: "", cantidad: 1 }]);
+      $("#quickColor").value = "";
+      $("#quickTalla").value = "";
+      $("#quickQty").value = 1;
+      renderPurchaseLines([]);
       syncPurchaseTotals();
     }
 
@@ -2568,6 +2754,9 @@
     }
 
     function buildPurchaseFromForm(existing) {
+      if (cleanText($("#quickColor").value) && cleanText($("#quickTalla").value)) {
+        addQuickPurchaseLine();
+      }
       const items = getPurchaseLinesFromForm();
       const itemSummary = summarizePurchaseItems(items);
       if (!itemSummary.cantidad) {
@@ -3111,9 +3300,21 @@
       });
       $("#purchaseForm").addEventListener("submit", savePurchaseFromForm);
       $("#clearFormBtn").addEventListener("click", resetPurchaseForm);
-      $("#addPurchaseLineBtn").addEventListener("click", () => {
-        const items = getPurchaseLinesFromForm();
-        renderPurchaseLines([...items, { color: "", talla: "", cantidad: 1 }]);
+      $("#addPurchaseLineBtn").addEventListener("click", addQuickPurchaseLine);
+      ["#quickColor", "#quickTalla", "#quickQty"].forEach((selector) => {
+        $(selector).addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            addQuickPurchaseLine();
+          }
+        });
+      });
+      $$("[data-quick-size]").forEach((button) => {
+        button.addEventListener("click", () => {
+          $("#quickTalla").value = button.dataset.quickSize;
+          $("#quickQty").focus();
+          $("#quickQty").select();
+        });
       });
       $("#purchaseLinesBody").addEventListener("input", (event) => {
         if (event.target.matches(".purchase-line-color, .purchase-line-talla, .purchase-line-qty")) {
@@ -3121,15 +3322,19 @@
         }
       });
       $("#purchaseLinesBody").addEventListener("click", (event) => {
-        const button = event.target.closest("[data-remove-purchase-line]");
-        if (!button) return;
-        const rows = $$("#purchaseLinesBody .purchase-line-row");
-        if (rows.length <= 1) {
-          renderPurchaseLines([{ color: "", talla: "", cantidad: 1 }]);
+        const qtyButton = event.target.closest("[data-line-qty]");
+        if (qtyButton) {
+          const row = qtyButton.closest(".purchase-line-row");
+          const input = row.querySelector(".purchase-line-qty");
+          input.value = Math.max(0, numberValue(input.value) + numberValue(qtyButton.dataset.lineQty));
+          syncPurchaseLineSummary();
           return;
         }
-        button.closest(".purchase-line-row").remove();
+        const removeButton = event.target.closest("[data-remove-purchase-line]");
+        if (!removeButton) return;
+        removeButton.closest(".purchase-line-row").remove();
         syncPurchaseLineSummary();
+        if (!$("#purchaseLinesBody .purchase-line-row")) renderPurchaseLines([]);
       });
       $("#shipmentForm").addEventListener("submit", saveShipment);
       $("#arrivalForm").addEventListener("submit", saveArrival);
