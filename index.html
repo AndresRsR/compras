@@ -453,6 +453,28 @@
       grid-column: 1 / -1;
     }
 
+    .transaction-form .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .transaction-form .form-grid .span-2,
+    .transaction-form .form-grid .span-4 {
+      grid-column: 1 / -1;
+    }
+
+    .transaction-form .form-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .transfer-field {
+      border-color: #efb8ca;
+      background: #fff8fb;
+      color: var(--ink);
+      font-weight: 850;
+    }
+
     .subhead {
       margin: 4px 0 14px;
       padding-bottom: 10px;
@@ -1188,6 +1210,10 @@
         grid-template-columns: 1fr;
       }
 
+      .transaction-form .form-grid {
+        grid-template-columns: 1fr;
+      }
+
       .form-grid .span-2,
       .form-grid .span-4 {
         grid-column: auto;
@@ -1426,7 +1452,7 @@
               </div>
               <div class="field">
                 <label for="timelinePaymentMethod">Método</label>
-                <input id="timelinePaymentMethod" placeholder="Efectivo, transferencia..." />
+                <input class="transfer-field" id="timelinePaymentMethod" value="Transferencia" readonly />
               </div>
               <div class="field span-2">
                 <label for="timelinePaymentReference">Referencia</label>
@@ -1613,7 +1639,7 @@
       </div>
       <div class="metrics" id="transactionMetrics"></div>
       <div class="split">
-        <form class="form-card" id="transactionForm">
+        <form class="form-card transaction-form" id="transactionForm">
           <div class="subhead">
             <h3>Nueva transacción</h3>
             <span class="pill">Caja NEOMAR</span>
@@ -1651,7 +1677,7 @@
             </div>
             <div class="field">
               <label for="transactionMethod">Método de pago</label>
-              <input id="transactionMethod" placeholder="Efectivo, transferencia..." />
+              <input class="transfer-field" id="transactionMethod" value="Transferencia" readonly />
             </div>
             <div class="field span-2">
               <label for="transactionReference">Referencia</label>
@@ -2104,7 +2130,7 @@
               montoSoles: 48,
               tipoCambio: 3.76,
               montoDolares: 12.77,
-              metodoPago: "Efectivo",
+              metodoPago: "Transferencia",
               referencia: "Guía SH-884219",
               observacion: "Transporte Lima a Ecuador."
             }
@@ -2364,7 +2390,7 @@
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: transaction.metodoPago || "",
+        metodoPago: "Transferencia",
         referencia: transaction.referencia || "",
         observacion: transaction.observacion || ""
       };
@@ -3290,7 +3316,7 @@
       $("#timelinePaymentType").value = selectedType;
       $("#timelinePaymentSoles").value = timelineSuggestedAmount(purchase, selectedType);
       $("#timelinePaymentRate").value = timelinePaymentRateForType(purchase, selectedType);
-      $("#timelinePaymentMethod").value = "";
+      $("#timelinePaymentMethod").value = "Transferencia";
       $("#timelinePaymentReference").value = timelinePaymentReference(purchase, selectedType);
       $("#timelinePaymentObservation").value = timelinePaymentObservation(purchase, selectedType);
       syncTimelinePaymentTotal();
@@ -3321,7 +3347,7 @@
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: $("#timelinePaymentMethod").value.trim(),
+        metodoPago: "Transferencia",
         referencia: $("#timelinePaymentReference").value.trim(),
         observacion: $("#timelinePaymentObservation").value.trim()
       });
@@ -3695,7 +3721,7 @@
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: $("#transactionMethod").value.trim(),
+        metodoPago: "Transferencia",
         referencia: $("#transactionReference").value.trim(),
         observacion: $("#transactionObservation").value.trim()
       });
@@ -3705,6 +3731,7 @@
       $("#transactionForm").reset();
       $("#transactionDate").value = today();
       $("#transactionRate").value = purchase.tipoCambioCompra || DEFAULT_RATE;
+      $("#transactionMethod").value = "Transferencia";
       $("#transactionPurchase").value = purchase.id;
       syncTransactionTotal();
       renderAll();
