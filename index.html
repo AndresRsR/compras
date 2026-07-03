@@ -261,6 +261,7 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -1003,6 +1004,80 @@
       margin-top: 0;
     }
 
+    .history-metrics {
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .history-card {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .history-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .history-card-title {
+      min-width: 0;
+    }
+
+    .history-card-title h3 {
+      margin: 0;
+      font-size: 1rem;
+      overflow-wrap: anywhere;
+    }
+
+    .history-card-title p,
+    .history-card-note {
+      margin: 5px 0 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .history-card-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .history-card-stat {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fffaf6;
+      min-width: 0;
+    }
+
+    .history-card-stat span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .history-card-stat strong {
+      overflow-wrap: anywhere;
+    }
+
     .detail-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1262,9 +1337,9 @@
 
     @media (max-width: 480px) {
       .header-actions {
-        grid-template-columns: 1fr;
-        width: min(340px, calc(100vw - 28px));
-        max-width: min(340px, calc(100vw - 28px));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        max-width: 100%;
       }
 
       .tabs,
@@ -1274,9 +1349,15 @@
       .dashboard-grid,
       .timeline-workspace,
       .timeline-main,
-      .timeline-overview {
-        width: min(340px, calc(100vw - 28px));
-        max-width: min(340px, calc(100vw - 28px));
+      .timeline-overview,
+      .history-grid {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .metrics,
+      .history-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .tabs {
@@ -1292,7 +1373,55 @@
       }
 
       .section-head p {
-        max-width: min(340px, calc(100vw - 28px));
+        max-width: 100%;
+      }
+
+      .content-box,
+      .form-card,
+      .timeline-stage,
+      .timeline-money-panel,
+      .timeline-next-panel,
+      .history-card {
+        padding: 14px;
+      }
+
+      .subhead {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .row-actions,
+      .toolbar,
+      .form-actions,
+      .dialog-actions,
+      .timeline-step-actions {
+        width: 100%;
+      }
+
+      .row-actions .btn,
+      .toolbar .btn,
+      .form-actions .btn,
+      .dialog-actions .btn,
+      .timeline-step-actions .btn {
+        width: 100%;
+      }
+
+      input,
+      select,
+      textarea,
+      .btn {
+        min-height: 44px;
+      }
+
+      .history-card-head,
+      .timeline-stage-head,
+      .timeline-step-head,
+      .timeline-transaction-row {
+        flex-direction: column;
+      }
+
+      .history-card-stats {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1337,6 +1466,7 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
       <button class="tab-btn" data-tab="timeline" type="button">Línea de tiempo</button>
+      <button class="tab-btn" data-tab="history" type="button">Historial</button>
       <button class="tab-btn" data-tab="purchases" type="button">Compras</button>
       <button class="tab-btn" data-tab="corroboration" type="button">Corroboración</button>
       <button class="tab-btn" data-tab="form" type="button">Formulario</button>
@@ -1470,6 +1600,21 @@
           </form>
         </div>
       </div>
+    </section>
+
+    <section class="panel" id="historyPanel">
+      <div class="section-head">
+        <div>
+          <h2>Historial de compras realizadas</h2>
+          <p>Compras cerradas con mercadería recibida correctamente y pagos completos.</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn secondary" data-tab-jump="timeline" type="button">Ver pendientes</button>
+          <button class="btn secondary" data-tab-jump="purchases" type="button">Ver tabla completa</button>
+        </div>
+      </div>
+      <div class="metrics history-metrics" id="historyMetrics"></div>
+      <div id="historyGrid" class="history-grid"></div>
     </section>
 
     <section class="panel" id="purchasesPanel">
@@ -2386,7 +2531,7 @@
       return {
         id: transaction.id || `TX-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
         fecha: transaction.fecha || today(),
-        tipo: transaction.tipo || "Pago de compra",
+        tipo: transactionTypeKey(transaction.tipo || "Pago de compra"),
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
@@ -2525,9 +2670,23 @@
       };
     }
 
+    function transactionTypeKey(type) {
+      const clean = String(type || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (clean.includes("env")) return "Pago de envío";
+      if (clean.includes("devol")) return "Devolución";
+      if (clean.includes("ajuste")) return "Ajuste";
+      if (clean.includes("otros")) return "Otros gastos";
+      if (clean.includes("compra")) return "Pago de compra";
+      return type || "Pago de compra";
+    }
+
     function transactionTotalByType(purchase, type, currencyKey = "montoSoles") {
+      const expectedType = transactionTypeKey(type);
       return purchase.transactions
-        .filter((transaction) => transaction.tipo === type)
+        .filter((transaction) => transactionTypeKey(transaction.tipo) === expectedType)
         .reduce((sum, transaction) => sum + numberValue(transaction[currencyKey]), 0);
     }
 
@@ -2549,9 +2708,40 @@
       };
     }
 
+    function isPurchaseClosed(purchase) {
+      if (!purchase) return false;
+      const breakdown = paymentBreakdown(purchase);
+      const purchaseOk = purchase.estadoCompra === "completado";
+      const shipmentOk = Boolean(purchase.envio?.fechaEnvio) && purchase.envio.estadoLinea !== "problema";
+      const arrivalOk = Boolean(purchase.llegada?.fechaLlegada) && purchase.llegada.estado === "correcto";
+      const purchasePaid = breakdown.pendingPurchase <= 0.01;
+      const shipmentPaid = breakdown.pendingShipment <= 0.01;
+      return purchaseOk && shipmentOk && arrivalOk && purchasePaid && shipmentPaid;
+    }
+
+    function activeTimelinePurchases() {
+      return state.purchases
+        .filter((purchase) => !isPurchaseClosed(purchase))
+        .sort((a, b) => String(b.fechaCompra).localeCompare(String(a.fechaCompra)));
+    }
+
+    function completedPurchases() {
+      return state.purchases
+        .filter(isPurchaseClosed)
+        .sort((a, b) => String(b.llegada?.fechaLlegada || b.updatedAt).localeCompare(String(a.llegada?.fechaLlegada || a.updatedAt)));
+    }
+
+    function timelineActivePurchase() {
+      const active = activeTimelinePurchases();
+      if (!active.length) return null;
+      const selected = getPurchase(state.activeId);
+      if (selected && !isPurchaseClosed(selected)) return selected;
+      return active[0];
+    }
+
     function timelineFilteredPurchases() {
       const query = state.timelineSearch.trim().toLowerCase();
-      return [...state.purchases]
+      return activeTimelinePurchases()
         .filter((purchase) => {
           if (!query) return true;
           const haystack = [
@@ -2574,18 +2764,21 @@
       const searchInput = $("#timelinePurchaseSearch");
       if (searchInput && document.activeElement !== searchInput) searchInput.value = state.timelineSearch;
 
-      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
+      const activePurchases = activeTimelinePurchases();
+      const activePurchase = timelineActivePurchase();
       const purchases = timelineFilteredPurchases();
-      $("#timelinePurchaseCount").textContent = `${purchases.length}/${state.purchases.length}`;
+      $("#timelinePurchaseCount").textContent = `${purchases.length}/${activePurchases.length}`;
 
       if (!purchases.length) {
-        list.innerHTML = `<div class="empty-state">No hay compras con ese filtro.</div>`;
+        list.innerHTML = activePurchases.length
+          ? `<div class="empty-state">No hay compras pendientes con ese filtro.</div>`
+          : `<div class="empty-state">No hay compras pendientes. Revisa el historial de compras realizadas.</div>`;
         return;
       }
 
       list.innerHTML = purchases.map((purchase) => {
         const status = currentStatus(purchase);
-        const isActive = purchase.id === state.activeId;
+        const isActive = purchase.id === activePurchase?.id;
         return `
           <button class="timeline-purchase-item ${isActive ? "active" : ""}" type="button" data-timeline-select="${escapeHtml(purchase.id)}">
             <span class="timeline-purchase-top">
@@ -2656,11 +2849,14 @@
 
     function renderTimelineManager(purchase) {
       if (!purchase) {
+        const hasPurchases = state.purchases.length > 0;
         return `
           <section class="timeline-stage">
             <div class="empty-state">
-              Crea una compra para empezar a manejar su línea de tiempo.
-              <div style="margin-top:12px;"><button class="btn soft" type="button" data-tab-jump="form">Crear compra</button></div>
+              ${hasPurchases ? "No hay compras pendientes en línea de tiempo. Las compras cerradas están en el historial." : "Crea una compra para empezar a manejar su línea de tiempo."}
+              <div style="margin-top:12px;">
+                <button class="btn soft" type="button" data-tab-jump="${hasPurchases ? "history" : "form"}">${hasPurchases ? "Ver historial" : "Crear compra"}</button>
+              </div>
             </div>
           </section>
         `;
@@ -2840,11 +3036,71 @@
     function renderTimelinePanel() {
       const overview = $("#timelineOverview");
       if (!overview) return;
-      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
-      if (state.activeId && !getPurchase(state.activeId)) state.activeId = state.purchases[0]?.id || null;
+      const purchase = timelineActivePurchase();
       renderTimelinePurchaseList();
-      overview.innerHTML = renderTimelineManager(getPurchase(state.activeId));
-      setTimelinePaymentDefaults($("#timelinePaymentType")?.value || "Pago de compra");
+      overview.innerHTML = renderTimelineManager(purchase);
+      setTimelinePaymentDefaults($("#timelinePaymentType")?.value || "Pago de compra", purchase?.id);
+    }
+
+    function renderHistory() {
+      const purchases = completedPurchases();
+      const totalSoles = purchases.reduce((sum, purchase) => sum + investmentSoles(purchase), 0);
+      const totalDollars = purchases.reduce((sum, purchase) => sum + investmentDollars(purchase), 0);
+      const totalUnits = purchases.reduce((sum, purchase) => sum + numberValue(purchase.llegada?.cantidadRecibida), 0);
+      const metrics = [
+        ["Realizadas", purchases.length, ""],
+        ["Invertido S/", currency(totalSoles, "S/"), "accent"],
+        ["Convertido USD", currency(totalDollars, "$"), "accent"],
+        ["Unidades recibidas", totalUnits, ""]
+      ];
+
+      $("#historyMetrics").innerHTML = metrics.map(([label, value, accent]) => `
+        <article class="metric-card">
+          <span>${escapeHtml(label)}</span>
+          <strong class="${accent}">${escapeHtml(value)}</strong>
+        </article>
+      `).join("");
+
+      if (!purchases.length) {
+        $("#historyGrid").innerHTML = `
+          <div class="content-box">
+            <div class="empty-state">
+              Aún no hay compras completamente realizadas. Cuando una compra esté pagada, enviada y recibida correctamente, aparecerá aquí.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      $("#historyGrid").innerHTML = purchases.map((purchase) => {
+        const breakdown = paymentBreakdown(purchase);
+        return `
+          <article class="history-card">
+            <div class="history-card-head">
+              <div class="history-card-title">
+                <h3>${escapeHtml(purchase.id)} · ${escapeHtml(purchase.prenda)}</h3>
+                <p>${escapeHtml(purchase.proveedor)} · ${escapeHtml(purchase.color || "Sin color")} · ${escapeHtml(purchase.talla || "Sin talla")}</p>
+              </div>
+              <span class="status-badge completado">Realizada</span>
+            </div>
+            <div class="history-card-stats">
+              <div class="history-card-stat"><span>Compra</span><strong>${dateLabel(purchase.fechaCompra)}</strong></div>
+              <div class="history-card-stat"><span>Llegada</span><strong>${dateLabel(purchase.llegada?.fechaLlegada)}</strong></div>
+              <div class="history-card-stat"><span>Pagado compra</span><strong>${currency(breakdown.purchasePaid, "S/")}</strong></div>
+              <div class="history-card-stat"><span>Pagado envío</span><strong>${currency(breakdown.shipmentPaid, "S/")}</strong></div>
+              <div class="history-card-stat"><span>Total S/</span><strong>${currency(investmentSoles(purchase), "S/")}</strong></div>
+              <div class="history-card-stat"><span>Total USD</span><strong>${currency(investmentDollars(purchase), "$")}</strong></div>
+            </div>
+            <p class="history-card-note">
+              Recibidas ${escapeHtml(purchase.llegada?.cantidadRecibida || 0)} de ${escapeHtml(purchase.llegada?.cantidadEsperada || 0)} unidades · ${arrivalLabel(purchase.llegada?.estado)}.
+            </p>
+            <div class="row-actions">
+              <button class="btn small secondary" type="button" data-view="${escapeHtml(purchase.id)}">Ver detalle</button>
+              <button class="btn small secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar</button>
+            </div>
+          </article>
+        `;
+      }).join("");
     }
 
     function investmentSoles(purchase) {
@@ -2856,7 +3112,7 @@
     }
 
     function transactionSign(type) {
-      return type === "Devolución" ? -1 : 1;
+      return transactionTypeKey(type) === "Devolución" ? -1 : 1;
     }
 
     function signedTransactionTotal(purchase, currencyKey) {
@@ -3024,10 +3280,11 @@
     }
 
     function renderActiveTimeline() {
-      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
-      const purchase = getPurchase(state.activeId);
-      $("#activeTimelineLabel").textContent = purchase ? `${purchase.id} · ${purchase.prenda}` : "Sin selección";
-      $("#activeTimeline").innerHTML = renderTimeline(purchase);
+      const purchase = timelineActivePurchase();
+      $("#activeTimelineLabel").textContent = purchase ? `${purchase.id} · ${purchase.prenda}` : "Sin pendientes";
+      $("#activeTimeline").innerHTML = purchase
+        ? renderTimeline(purchase)
+        : `<div class="empty-state">No hay compras pendientes en línea de tiempo.</div>`;
     }
 
     function renderTransactionPurchaseOptions() {
@@ -3054,7 +3311,8 @@
       const totalSoles = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoSoles"), 0);
       const totalDollars = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoDolares"), 0);
       const countByType = entries.reduce((counts, entry) => {
-        counts[entry.transaction.tipo] = (counts[entry.transaction.tipo] || 0) + 1;
+        const type = transactionTypeKey(entry.transaction.tipo);
+        counts[type] = (counts[type] || 0) + 1;
         return counts;
       }, {});
       const metrics = [
@@ -3150,6 +3408,7 @@
       renderRecentPurchases();
       renderActiveTimeline();
       renderTimelinePanel();
+      renderHistory();
       renderTransactionPurchaseOptions();
       renderTransactionMetrics();
       renderTransactionsTable();
@@ -3289,10 +3548,10 @@
       dollarsInput.value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
     }
 
-    function setTimelinePaymentDefaults(type = "Pago de compra") {
+    function setTimelinePaymentDefaults(type = "Pago de compra", purchaseId = "") {
       const form = $("#timelinePaymentForm");
       if (!form) return;
-      const purchase = getPurchase(state.activeId);
+      const purchase = getPurchase(purchaseId) || timelineActivePurchase();
       const controls = Array.from(form.elements);
 
       if (!purchase) {
@@ -3300,7 +3559,9 @@
         controls.forEach((control) => {
           control.disabled = true;
         });
-        $("#timelinePaymentHint").textContent = "Selecciona una compra";
+        $("#timelinePaymentPurchase").value = "";
+        $("#timelinePaymentMethod").value = "Transferencia";
+        $("#timelinePaymentHint").textContent = "Sin compras pendientes";
         syncTimelinePaymentTotal();
         return;
       }
@@ -3323,7 +3584,7 @@
     }
 
     function clearTimelinePayment() {
-      setTimelinePaymentDefaults($("#timelinePaymentType").value || "Pago de compra");
+      setTimelinePaymentDefaults($("#timelinePaymentType").value || "Pago de compra", $("#timelinePaymentPurchase").value);
       $("#timelinePaymentSoles").focus();
     }
 
@@ -3366,7 +3627,7 @@
       closeDialog("detailDialog");
       state.activeId = purchase.id;
       renderAll();
-      setTimelinePaymentDefaults(type);
+      setTimelinePaymentDefaults(type, purchase.id);
       switchTab("timeline");
       $("#timelinePaymentForm").scrollIntoView({ behavior: "smooth", block: "start" });
       $("#timelinePaymentSoles").focus();
@@ -3381,7 +3642,7 @@
       renderActiveTimeline();
       renderTimelinePanel();
       renderTransactionsTable();
-      setTimelinePaymentDefaults("Pago de compra");
+      setTimelinePaymentDefaults("Pago de compra", purchase.id);
     }
 
     function resetPurchaseForm() {
@@ -3980,7 +4241,7 @@
         $(selector).addEventListener("input", syncTimelinePaymentTotal);
       });
       $("#timelinePaymentType").addEventListener("change", () => {
-        setTimelinePaymentDefaults($("#timelinePaymentType").value);
+        setTimelinePaymentDefaults($("#timelinePaymentType").value, $("#timelinePaymentPurchase").value);
       });
       $("#transactionPurchase").addEventListener("change", () => {
         state.activeId = $("#transactionPurchase").value;
