@@ -476,6 +476,58 @@
       font-weight: 850;
     }
 
+    .option-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .option-control .btn {
+      white-space: nowrap;
+      min-height: 42px;
+    }
+
+    .option-control-compact {
+      margin-top: 8px;
+    }
+
+    .size-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 42px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+
+    .size-chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-height: 34px;
+      padding: 7px 12px;
+      background: #fffaf6;
+      color: var(--ink);
+      font-weight: 850;
+      font-size: 0.86rem;
+    }
+
+    .size-chip.active {
+      border-color: #efb8ca;
+      background: var(--pink);
+      color: var(--black);
+      box-shadow: 0 8px 18px rgba(207, 111, 143, 0.12);
+    }
+
+    .size-help {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
     .subhead {
       margin: 4px 0 14px;
       padding-bottom: 10px;
@@ -1413,6 +1465,15 @@
         min-height: 44px;
       }
 
+      .option-control {
+        grid-template-columns: 1fr;
+      }
+
+      .size-chip {
+        min-height: 38px;
+        padding: 8px 13px;
+      }
+
       .history-card-head,
       .timeline-stage-head,
       .timeline-step-head,
@@ -1712,15 +1773,24 @@
         <div class="form-grid">
           <div class="field">
             <label for="proveedor">Proveedor</label>
-            <select id="proveedor" required></select>
+            <div class="option-control">
+              <select id="proveedor" required></select>
+              <button class="btn small secondary" type="button" data-add-option="proveedores" data-option-target="proveedor">Añadir</button>
+            </div>
           </div>
           <div class="field">
             <label for="prenda">Prenda</label>
-            <select id="prenda" required></select>
+            <div class="option-control">
+              <select id="prenda" required></select>
+              <button class="btn small secondary" type="button" data-add-option="prendas" data-option-target="prenda">Añadir</button>
+            </div>
           </div>
           <div class="field">
             <label for="categoria">Categoría</label>
-            <select id="categoria" required></select>
+            <div class="option-control">
+              <select id="categoria" required></select>
+              <button class="btn small secondary" type="button" data-add-option="categorias" data-option-target="categoria">Añadir</button>
+            </div>
           </div>
           <div class="field">
             <label for="estadoCompra">Estado compra</label>
@@ -1733,11 +1803,20 @@
           </div>
           <div class="field">
             <label for="color">Color</label>
-            <select id="color"></select>
+            <div class="option-control">
+              <select id="color"></select>
+              <button class="btn small secondary" type="button" data-add-option="colores" data-option-target="color">Añadir</button>
+            </div>
           </div>
-          <div class="field">
+          <div class="field span-2">
             <label for="talla">Talla</label>
-            <select id="talla"></select>
+            <input id="talla" type="hidden" />
+            <div class="size-picker" id="sizePicker" aria-label="Seleccionar tallas"></div>
+            <div class="option-control option-control-compact">
+              <input id="customTallaInput" placeholder="Añadir talla: 26, 28, Plus..." />
+              <button class="btn small secondary" id="addTallaBtn" type="button">Añadir</button>
+            </div>
+            <p class="size-help">Puedes tocar varias tallas. Se guardarán como S, M, L.</p>
           </div>
           <div class="field">
             <label for="cantidad">Cantidad comprada</label>
@@ -2032,6 +2111,7 @@
 
   <script>
     const STORAGE_KEY = "neomar_compras_v1";
+    const OPTIONS_STORAGE_KEY = "neomar_custom_options_v1";
     const DEFAULT_RATE = 3.75;
     const FIXED_OPTIONS = {
       proveedores: [
@@ -2122,7 +2202,14 @@
       activeId: null,
       search: "",
       status: "todos",
-      timelineSearch: ""
+      timelineSearch: "",
+      customOptions: {
+        proveedores: [],
+        prendas: [],
+        categorias: [],
+        colores: [],
+        tallas: []
+      }
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -2198,6 +2285,105 @@
       if (dialog?.open) dialog.close();
     }
 
+    function defaultCustomOptions() {
+      return {
+        proveedores: [],
+        prendas: [],
+        categorias: [],
+        colores: [],
+        tallas: []
+      };
+    }
+
+    function normalizeOptionValue(value) {
+      return String(value ?? "").trim().replace(/\s+/g, " ");
+    }
+
+    function uniqueOptions(values) {
+      const seen = new Set();
+      return values.reduce((result, value) => {
+        const clean = normalizeOptionValue(value);
+        const key = clean.toLocaleLowerCase("es");
+        if (!clean || seen.has(key)) return result;
+        seen.add(key);
+        result.push(clean);
+        return result;
+      }, []);
+    }
+
+    function splitSizeValue(value) {
+      return String(value ?? "")
+        .split(",")
+        .map((part) => normalizeOptionValue(part))
+        .filter(Boolean);
+    }
+
+    function purchaseOptionValues(key) {
+      const fieldByKey = {
+        proveedores: "proveedor",
+        prendas: "prenda",
+        categorias: "categoria",
+        colores: "color"
+      };
+
+      if (key === "tallas") {
+        return state.purchases.flatMap((purchase) => splitSizeValue(purchase.talla));
+      }
+
+      const field = fieldByKey[key];
+      return field ? state.purchases.map((purchase) => purchase[field]) : [];
+    }
+
+    function availableOptions(key) {
+      const baseOptions = key === "tallas"
+        ? FIXED_OPTIONS.tallas.flatMap(splitSizeValue)
+        : FIXED_OPTIONS[key] || [];
+      return uniqueOptions([
+        ...baseOptions,
+        ...(state.customOptions[key] || []),
+        ...purchaseOptionValues(key)
+      ]);
+    }
+
+    function loadCustomOptions() {
+      const defaults = defaultCustomOptions();
+      try {
+        const parsed = JSON.parse(localStorage.getItem(OPTIONS_STORAGE_KEY) || "{}");
+        state.customOptions = Object.fromEntries(Object.keys(defaults).map((key) => {
+          return [key, uniqueOptions(Array.isArray(parsed[key]) ? parsed[key] : [])];
+        }));
+      } catch (error) {
+        console.error(error);
+        state.customOptions = defaults;
+      }
+    }
+
+    function saveCustomOptions() {
+      localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(state.customOptions));
+    }
+
+    function addCustomOption(key, value) {
+      const clean = normalizeOptionValue(value);
+      if (!clean || !state.customOptions[key]) return "";
+      const existing = availableOptions(key).some((option) => option.toLocaleLowerCase("es") === clean.toLocaleLowerCase("es"));
+      if (!existing) {
+        state.customOptions[key].push(clean);
+        state.customOptions[key] = uniqueOptions(state.customOptions[key]);
+        saveCustomOptions();
+      }
+      return clean;
+    }
+
+    function currentPurchaseSelection() {
+      return {
+        proveedor: $("#proveedor")?.value || "",
+        prenda: $("#prenda")?.value || "",
+        categoria: $("#categoria")?.value || "",
+        color: $("#color")?.value || "",
+        talla: $("#talla")?.value || ""
+      };
+    }
+
     function optionHtml(values, selected, placeholder) {
       const selectedValue = selected || "";
       const cleanValues = Array.from(new Set(values.filter(Boolean)));
@@ -2214,11 +2400,61 @@
     }
 
     function fillPurchaseFixedSelects(selected = {}) {
-      fillFixedSelect("proveedor", FIXED_OPTIONS.proveedores, selected.proveedor, "Seleccionar proveedor");
-      fillFixedSelect("prenda", FIXED_OPTIONS.prendas, selected.prenda, "Seleccionar prenda");
-      fillFixedSelect("categoria", FIXED_OPTIONS.categorias, selected.categoria, "Seleccionar categoría");
-      fillFixedSelect("color", FIXED_OPTIONS.colores, selected.color, "Seleccionar color");
-      fillFixedSelect("talla", FIXED_OPTIONS.tallas, selected.talla, "Seleccionar talla");
+      fillFixedSelect("proveedor", availableOptions("proveedores"), selected.proveedor, "Seleccionar proveedor");
+      fillFixedSelect("prenda", availableOptions("prendas"), selected.prenda, "Seleccionar prenda");
+      fillFixedSelect("categoria", availableOptions("categorias"), selected.categoria, "Seleccionar categoría");
+      fillFixedSelect("color", availableOptions("colores"), selected.color, "Seleccionar color");
+      renderSizePicker(selected.talla || "");
+    }
+
+    function renderSizePicker(selected = $("#talla")?.value || "") {
+      const picker = $("#sizePicker");
+      if (!picker) return;
+      const selectedValues = uniqueOptions(splitSizeValue(selected));
+      const selectedKeys = new Set(selectedValues.map((value) => value.toLocaleLowerCase("es")));
+      const options = uniqueOptions([...availableOptions("tallas"), ...selectedValues]);
+      picker.innerHTML = options.map((size) => {
+        const active = selectedKeys.has(size.toLocaleLowerCase("es"));
+        return `<button class="size-chip ${active ? "active" : ""}" type="button" data-size-option="${escapeHtml(size)}">${escapeHtml(size)}</button>`;
+      }).join("");
+      $("#talla").value = selectedValues.join(", ");
+    }
+
+    function syncSizePickerValue() {
+      const selected = $$("#sizePicker .size-chip.active").map((button) => button.dataset.sizeOption);
+      $("#talla").value = uniqueOptions(selected).join(", ");
+    }
+
+    function addOptionFromPrompt(key, targetId) {
+      const labels = {
+        proveedores: "proveedor",
+        prendas: "prenda",
+        categorias: "categoría",
+        colores: "color"
+      };
+      const value = prompt(`Agregar ${labels[key] || "opción"}`);
+      const clean = addCustomOption(key, value);
+      if (!clean) return;
+      const selection = currentPurchaseSelection();
+      selection[targetId] = clean;
+      fillPurchaseFixedSelects(selection);
+      const target = $(`#${targetId}`);
+      if (target) target.value = clean;
+      toast(`${clean} agregado.`);
+    }
+
+    function addCustomTalla() {
+      const input = $("#customTallaInput");
+      const sizes = uniqueOptions(splitSizeValue(input.value));
+      if (!sizes.length) {
+        input.focus();
+        return;
+      }
+      const selected = uniqueOptions([...splitSizeValue($("#talla").value), ...sizes]);
+      sizes.forEach((size) => addCustomOption("tallas", size));
+      renderSizePicker(selected.join(", "));
+      input.value = "";
+      toast(`${sizes.join(", ")} agregado.`);
     }
 
     function samplePurchases() {
@@ -4017,6 +4253,7 @@
         app: "Gestión de Compras NEOMAR",
         version: 1,
         exportedAt: new Date().toISOString(),
+        customOptions: state.customOptions,
         purchases: state.purchases
       };
       downloadFile(`compras-neomar-${today()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
@@ -4099,8 +4336,19 @@
           const ok = confirm("La importación reemplazará las compras actuales. ¿Continuar?");
           if (!ok) return;
           state.purchases = purchases.map(normalizePurchase);
+          if (parsed.customOptions && typeof parsed.customOptions === "object") {
+            const defaults = defaultCustomOptions();
+            state.customOptions = Object.fromEntries(Object.keys(defaults).map((key) => {
+              return [key, uniqueOptions([
+                ...(state.customOptions[key] || []),
+                ...(Array.isArray(parsed.customOptions[key]) ? parsed.customOptions[key] : [])
+              ])];
+            }));
+            saveCustomOptions();
+          }
           state.activeId = state.purchases[0]?.id || null;
           saveData();
+          fillPurchaseFixedSelects();
           renderAll();
           toast("Datos importados correctamente.");
         } catch (error) {
@@ -4129,6 +4377,17 @@
 
       if (target.dataset.tabJump) {
         switchTab(target.dataset.tabJump);
+        return;
+      }
+
+      if (target.dataset.addOption) {
+        addOptionFromPrompt(target.dataset.addOption, target.dataset.optionTarget);
+        return;
+      }
+
+      if (target.dataset.sizeOption) {
+        target.classList.toggle("active");
+        syncSizePickerValue();
         return;
       }
 
@@ -4205,6 +4464,13 @@
       $("#importJsonBtn").addEventListener("click", () => $("#importFile").click());
       $("#importFile").addEventListener("change", (event) => importJsonFile(event.target.files[0]));
       $("#restoreExamplesBtn").addEventListener("click", restoreExamples);
+      $("#addTallaBtn").addEventListener("click", addCustomTalla);
+      $("#customTallaInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addCustomTalla();
+        }
+      });
       $("#timelinePurchaseSearch").addEventListener("input", (event) => {
         state.timelineSearch = event.target.value;
         renderTimelinePurchaseList();
@@ -4256,6 +4522,7 @@
 
     function init() {
       loadData();
+      loadCustomOptions();
       fillPurchaseFixedSelects();
       bindEvents();
       resetPurchaseForm();
