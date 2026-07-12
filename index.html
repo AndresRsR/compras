@@ -1048,6 +1048,37 @@
       margin-top: auto;
     }
 
+    .timeline-status-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 4px 6px 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .timeline-status-control span {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .timeline-status-control select {
+      min-height: 30px;
+      width: auto;
+      min-width: 126px;
+      border-radius: 999px;
+      padding: 4px 28px 4px 10px;
+      font-size: 0.82rem;
+      font-weight: 850;
+      background: #fffaf6;
+    }
+
     .timeline-management-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
@@ -2878,7 +2909,7 @@
 
     function timelineProgress(purchase) {
       const steps = timelineSteps(purchase);
-      const completed = steps.filter((step) => ["pedido", "completado", "recibida"].includes(step.status)).length;
+      const completed = steps.filter((step) => ["pedido", "proceso", "completado", "recibida"].includes(step.status)).length;
       const hasProblem = steps.some((step) => step.status === "problema");
       return {
         completed,
@@ -2995,19 +3026,42 @@
       `;
     }
 
+    function purchaseStatusOptions(selected) {
+      return [
+        ["pedido", "Pedido"],
+        ["proceso", "En proceso"],
+        ["completado", "Completada"],
+        ["problema", "Con problema"]
+      ].map(([value, label]) => {
+        return `<option value="${value}" ${value === selected ? "selected" : ""}>${label}</option>`;
+      }).join("");
+    }
+
+    function purchaseStatusControl(purchase) {
+      return `
+        <label class="timeline-status-control">
+          <span>Estado compra</span>
+          <select data-purchase-status="${escapeHtml(purchase.id)}" aria-label="Estado de compra ${escapeHtml(purchase.id)}">
+            ${purchaseStatusOptions(purchase.estadoCompra || "pedido")}
+          </select>
+        </label>
+      `;
+    }
+
     function timelineStepActions(purchase, stepIndex) {
       const id = escapeHtml(purchase.id);
       if (stepIndex === 0) {
         return `
           <button class="btn small secondary" type="button" data-edit="${id}">Editar compra</button>
-          <button class="btn small soft" type="button" data-timeline-pay-type="Pago de compra" data-timeline-purchase="${id}">Pago compra</button>
+          ${purchaseStatusControl(purchase)}
+          <button class="btn small soft" type="button" data-timeline-pay-type="Pago de compra" data-timeline-purchase="${id}">Registrar pago</button>
         `;
       }
 
       if (stepIndex === 1) {
         return `
           <button class="btn small secondary" type="button" data-shipment="${id}">${purchase.envio ? "Editar envío" : "Registrar envío"}</button>
-          <button class="btn small soft" type="button" data-timeline-pay-type="Pago de envío" data-timeline-purchase="${id}">Pago envío</button>
+          <button class="btn small soft" type="button" data-timeline-pay-type="Pago de envío" data-timeline-purchase="${id}">Registrar pago envío</button>
         `;
       }
 
@@ -3097,8 +3151,8 @@
             <div class="timeline-finance-item"><span>Devoluciones</span><strong class="ok-text">${currency(breakdown.refunds, "S/")}</strong></div>
           </div>
           <div class="row-actions">
-            <button class="btn small soft" type="button" data-timeline-pay-type="Pago de compra" data-timeline-purchase="${escapeHtml(purchase.id)}">Pago compra</button>
-            <button class="btn small soft" type="button" data-timeline-pay-type="Pago de envío" data-timeline-purchase="${escapeHtml(purchase.id)}">Pago envío</button>
+            <button class="btn small soft" type="button" data-timeline-pay-type="Pago de compra" data-timeline-purchase="${escapeHtml(purchase.id)}">Registrar pago compra</button>
+            <button class="btn small soft" type="button" data-timeline-pay-type="Pago de envío" data-timeline-purchase="${escapeHtml(purchase.id)}">Registrar pago envío</button>
             <button class="btn small secondary" type="button" data-timeline-pay-type="Otros gastos" data-timeline-purchase="${escapeHtml(purchase.id)}">Otro gasto</button>
             <button class="btn small secondary" type="button" data-timeline-pay-type="Devolución" data-timeline-purchase="${escapeHtml(purchase.id)}">Devolución</button>
             <button class="btn small secondary" type="button" data-tab-jump="transactions">Ver todo</button>
@@ -3733,6 +3787,18 @@
       switchTab("timeline");
       $("#timelinePaymentForm").scrollIntoView({ behavior: "smooth", block: "start" });
       $("#timelinePaymentSoles").focus();
+      toast("Formulario de pago listo para registrar el movimiento.");
+    }
+
+    function updatePurchaseStatusFromTimeline(purchaseId, status) {
+      const purchase = getPurchase(purchaseId);
+      if (!purchase) return;
+      purchase.estadoCompra = status;
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      renderAll();
+      toast(`Estado de compra actualizado a ${statusLabel(status)}.`);
     }
 
     function selectTimelinePurchase(id) {
@@ -4332,6 +4398,12 @@
       });
 
       document.addEventListener("click", handleDocumentClick);
+      document.addEventListener("change", (event) => {
+        const target = event.target;
+        if (target.matches("[data-purchase-status]")) {
+          updatePurchaseStatusFromTimeline(target.dataset.purchaseStatus, target.value);
+        }
+      });
       $("#newPurchaseTopBtn").addEventListener("click", () => {
         resetPurchaseForm();
         switchTab("form");
