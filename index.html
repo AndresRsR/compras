@@ -1079,6 +1079,36 @@
       background: #fffaf6;
     }
 
+    .payment-dialog-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .payment-dialog-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fffaf6;
+      min-width: 0;
+    }
+
+    .payment-dialog-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .payment-dialog-card strong {
+      font-size: 1.15rem;
+      overflow-wrap: anywhere;
+    }
+
     .timeline-management-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
@@ -1375,6 +1405,10 @@
       }
 
       .option-control {
+        grid-template-columns: 1fr;
+      }
+
+      .payment-dialog-summary {
         grid-template-columns: 1fr;
       }
     }
@@ -2011,6 +2045,77 @@
         <div class="dialog-actions" style="margin-top: 18px;">
           <button class="btn" type="submit">Guardar recepción</button>
           <button class="btn secondary" type="button" data-close-dialog="arrivalDialog">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="paymentDialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div>
+          <h2 id="paymentDialogTitle">Registrar pago</h2>
+          <p id="paymentDialogSubtitle"></p>
+        </div>
+        <button class="btn ghost" type="button" data-close-dialog="paymentDialog">Cerrar</button>
+      </div>
+      <form id="paymentDialogForm">
+        <input type="hidden" id="paymentDialogPurchase" />
+        <input type="hidden" id="paymentDialogType" />
+        <div class="payment-dialog-summary">
+          <div class="payment-dialog-card">
+            <span>Monto por cancelar</span>
+            <strong id="paymentDialogDueSoles">S/ 0,00</strong>
+          </div>
+          <div class="payment-dialog-card">
+            <span>Equivalente USD</span>
+            <strong id="paymentDialogDueDollars">$ 0,00</strong>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="paymentDialogStatus">Estado del pago</label>
+            <select id="paymentDialogStatus">
+              <option value="cancelado">Cancelado</option>
+              <option value="pendiente">TodavÃ­a no</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="paymentDialogDate">Fecha</label>
+            <input id="paymentDialogDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="paymentDialogSoles">Monto S/</label>
+            <input id="paymentDialogSoles" type="number" min="0" step="0.01" required />
+          </div>
+          <div class="field">
+            <label for="paymentDialogRate">Tipo de cambio</label>
+            <input id="paymentDialogRate" type="number" min="0.0001" step="0.0001" required />
+          </div>
+          <div class="field">
+            <label for="paymentDialogDollars">Monto USD</label>
+            <input id="paymentDialogDollars" readonly />
+          </div>
+          <div class="field">
+            <label for="paymentDialogMethod">MÃ©todo</label>
+            <select id="paymentDialogMethod">
+              <option value="Transferencia bancaria">Transferencia bancaria</option>
+              <option value="Transferencia Yape/Plin">Transferencia Yape/Plin</option>
+              <option value="Transferencia internacional">Transferencia internacional</option>
+            </select>
+          </div>
+          <div class="field span-2">
+            <label for="paymentDialogReference">Referencia</label>
+            <input id="paymentDialogReference" placeholder="NÃºmero de operaciÃ³n o referencia" />
+          </div>
+          <div class="field span-4">
+            <label for="paymentDialogObservation">ObservaciÃ³n</label>
+            <textarea id="paymentDialogObservation" placeholder="Detalle del pago o motivo si todavÃ­a no se cancela"></textarea>
+          </div>
+        </div>
+        <div class="dialog-actions" style="margin-top: 18px;">
+          <button class="btn" type="submit">Guardar</button>
+          <button class="btn secondary" type="button" data-close-dialog="paymentDialog">Cancelar</button>
         </div>
       </form>
     </div>
@@ -3048,6 +3153,29 @@
       `;
     }
 
+    function shipmentStatusOptions(selected) {
+      return [
+        ["pendiente", "Pendiente"],
+        ["proceso", "En proceso"],
+        ["completado", "Completado"],
+        ["problema", "Con problema"]
+      ].map(([value, label]) => {
+        return `<option value="${value}" ${value === selected ? "selected" : ""}>${label}</option>`;
+      }).join("");
+    }
+
+    function shipmentStatusControl(purchase) {
+      if (!purchase.envio) return "";
+      return `
+        <label class="timeline-status-control">
+          <span>Estado envío</span>
+          <select data-shipment-status="${escapeHtml(purchase.id)}" aria-label="Estado de envío ${escapeHtml(purchase.id)}">
+            ${shipmentStatusOptions(purchase.envio.estadoLinea || "pendiente")}
+          </select>
+        </label>
+      `;
+    }
+
     function timelineStepActions(purchase, stepIndex) {
       const id = escapeHtml(purchase.id);
       if (stepIndex === 0) {
@@ -3061,6 +3189,7 @@
       if (stepIndex === 1) {
         return `
           <button class="btn small secondary" type="button" data-shipment="${id}">${purchase.envio ? "Editar envío" : "Registrar envío"}</button>
+          ${shipmentStatusControl(purchase)}
           <button class="btn small soft" type="button" data-timeline-pay-type="Pago de envío" data-timeline-purchase="${id}">Registrar pago envío</button>
         `;
       }
@@ -3706,6 +3835,51 @@
       dollarsInput.value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
     }
 
+    function syncPaymentDialogTotal() {
+      const dollarsInput = $("#paymentDialogDollars");
+      if (!dollarsInput) return;
+      const soles = numberValue($("#paymentDialogSoles").value);
+      const rate = numberValue($("#paymentDialogRate").value);
+      dollarsInput.value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
+    }
+
+    function paymentTypeTitle(type) {
+      return {
+        "Pago de compra": "Registrar pago de compra",
+        "Pago de envío": "Registrar pago de envío",
+        "Otros gastos": "Registrar otro gasto",
+        "Devolución": "Registrar devolución",
+        "Ajuste": "Registrar ajuste"
+      }[type] || "Registrar pago";
+    }
+
+    function openPaymentDialog(type, purchaseId = state.activeId) {
+      const purchase = getPurchase(purchaseId);
+      if (!purchase) return;
+      closeDialog("detailDialog");
+      state.activeId = purchase.id;
+
+      const selectedType = type || "Pago de compra";
+      const rate = timelinePaymentRateForType(purchase, selectedType);
+      const amount = timelineSuggestedAmount(purchase, selectedType);
+
+      $("#paymentDialogPurchase").value = purchase.id;
+      $("#paymentDialogType").value = selectedType;
+      $("#paymentDialogTitle").textContent = paymentTypeTitle(selectedType);
+      $("#paymentDialogSubtitle").textContent = `${purchase.id} · ${purchase.prenda}`;
+      $("#paymentDialogDueSoles").textContent = currency(amount, "S/");
+      $("#paymentDialogDueDollars").textContent = rate > 0 ? currency(amount / rate, "$") : currency(0, "$");
+      $("#paymentDialogStatus").value = "cancelado";
+      $("#paymentDialogDate").value = today();
+      $("#paymentDialogSoles").value = amount;
+      $("#paymentDialogRate").value = rate;
+      $("#paymentDialogMethod").value = "Transferencia bancaria";
+      $("#paymentDialogReference").value = timelinePaymentReference(purchase, selectedType);
+      $("#paymentDialogObservation").value = timelinePaymentObservation(purchase, selectedType);
+      syncPaymentDialogTotal();
+      $("#paymentDialog").showModal();
+    }
+
     function setTimelinePaymentDefaults(type = "Pago de compra") {
       const form = $("#timelinePaymentForm");
       if (!form) return;
@@ -3777,6 +3951,45 @@
       toast("Movimiento guardado en la línea de tiempo.");
     }
 
+    function savePaymentDialog(event) {
+      event.preventDefault();
+      const purchase = getPurchase($("#paymentDialogPurchase").value || state.activeId);
+      if (!purchase) return;
+
+      const paymentStatus = $("#paymentDialogStatus").value;
+      const type = $("#paymentDialogType").value || "Pago de compra";
+      if (paymentStatus === "pendiente") {
+        closeDialog("paymentDialog");
+        toast("Pago marcado como todavía no cancelado.");
+        return;
+      }
+
+      const montoSoles = round2($("#paymentDialogSoles").value);
+      if (montoSoles <= 0) {
+        alert("Ingresa un monto mayor a cero para guardar el pago cancelado.");
+        return;
+      }
+
+      const tipoCambio = numberValue($("#paymentDialogRate").value) || timelinePaymentRateForType(purchase, type);
+      purchase.transactions.push({
+        id: `TX-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+        fecha: $("#paymentDialogDate").value,
+        tipo: type,
+        montoSoles,
+        tipoCambio,
+        montoDolares: round2(montoSoles / tipoCambio),
+        metodoPago: $("#paymentDialogMethod").value,
+        referencia: $("#paymentDialogReference").value.trim(),
+        observacion: $("#paymentDialogObservation").value.trim()
+      });
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      renderAll();
+      closeDialog("paymentDialog");
+      toast("Pago cancelado y registrado.");
+    }
+
     function prepareTimelinePayment(type, purchaseId = state.activeId) {
       const purchase = getPurchase(purchaseId);
       if (!purchase) return;
@@ -3799,6 +4012,17 @@
       saveData();
       renderAll();
       toast(`Estado de compra actualizado a ${statusLabel(status)}.`);
+    }
+
+    function updateShipmentStatusFromTimeline(purchaseId, status) {
+      const purchase = getPurchase(purchaseId);
+      if (!purchase?.envio) return;
+      purchase.envio.estadoLinea = status;
+      purchase.updatedAt = new Date().toISOString();
+      state.activeId = purchase.id;
+      saveData();
+      renderAll();
+      toast(`Estado de envío actualizado a ${statusLabel(status)}.`);
     }
 
     function selectTimelinePurchase(id) {
@@ -4347,7 +4571,7 @@
       }
 
       if (target.dataset.timelinePayType) {
-        prepareTimelinePayment(target.dataset.timelinePayType, target.dataset.timelinePurchase);
+        openPaymentDialog(target.dataset.timelinePayType, target.dataset.timelinePurchase);
         return;
       }
 
@@ -4403,6 +4627,9 @@
         if (target.matches("[data-purchase-status]")) {
           updatePurchaseStatusFromTimeline(target.dataset.purchaseStatus, target.value);
         }
+        if (target.matches("[data-shipment-status]")) {
+          updateShipmentStatusFromTimeline(target.dataset.shipmentStatus, target.value);
+        }
       });
       $("#newPurchaseTopBtn").addEventListener("click", () => {
         resetPurchaseForm();
@@ -4421,6 +4648,7 @@
       $("#arrivalForm").addEventListener("submit", saveArrival);
       $("#transactionForm").addEventListener("submit", saveTransaction);
       $("#timelinePaymentForm").addEventListener("submit", saveTimelineTransaction);
+      $("#paymentDialogForm").addEventListener("submit", savePaymentDialog);
       $("#timelinePaymentClearBtn").addEventListener("click", clearTimelinePayment);
       $("#exportJsonBtn").addEventListener("click", exportJson);
       $("#exportCsvBtn").addEventListener("click", exportCsv);
@@ -4461,6 +4689,9 @@
       });
       ["#timelinePaymentSoles", "#timelinePaymentRate"].forEach((selector) => {
         $(selector).addEventListener("input", syncTimelinePaymentTotal);
+      });
+      ["#paymentDialogSoles", "#paymentDialogRate"].forEach((selector) => {
+        $(selector).addEventListener("input", syncPaymentDialogTotal);
       });
       $("#timelinePaymentType").addEventListener("change", () => {
         setTimelinePaymentDefaults($("#timelinePaymentType").value);
