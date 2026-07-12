@@ -508,9 +508,20 @@
 
     .color-add-row {
       display: grid;
-      grid-template-columns: minmax(160px, 1fr) 130px 120px auto auto;
+      grid-template-columns: minmax(160px, 1fr) minmax(260px, 1.2fr) 120px auto auto;
       gap: 8px;
       align-items: stretch;
+    }
+
+    .color-size-picker {
+      min-height: 42px;
+      padding: 6px;
+      align-items: center;
+    }
+
+    .color-size-picker .size-chip {
+      min-height: 32px;
+      padding: 6px 11px;
     }
 
     .color-items {
@@ -1672,10 +1683,12 @@
           <div class="field span-4">
             <label for="colorPicker">Colores / tallas / cantidades compradas</label>
             <input id="color" type="hidden" />
+            <input id="talla" type="hidden" />
             <div class="color-builder">
               <div class="color-add-row">
                 <select id="colorPicker" aria-label="Color"></select>
-                <select id="colorSizePicker" aria-label="Talla"></select>
+                <input id="colorSizePicker" type="hidden" value="Única" />
+                <div class="size-picker color-size-picker" id="colorSizePickerButtons" aria-label="Seleccionar talla para esta línea"></div>
                 <input id="colorQuantity" type="number" min="1" step="1" value="1" aria-label="Cantidad del color" />
                 <button class="btn secondary" id="addColorItemBtn" type="button">Agregar color</button>
                 <button class="btn secondary" type="button" data-add-option="colores">Añadir color</button>
@@ -1683,12 +1696,6 @@
               <div class="color-items" id="colorItems"></div>
               <p class="size-help">Para varias tallas del mismo modelo, agrega una fila por talla: M x 3, S x 2, etc.</p>
             </div>
-          </div>
-          <div class="field span-2">
-            <label for="talla">Talla</label>
-            <input id="talla" type="hidden" />
-            <div class="size-picker" id="sizePicker" aria-label="Seleccionar tallas"></div>
-            <p class="size-help">Puedes tocar una o varias tallas. Talla Única aparece una sola vez.</p>
           </div>
           <div class="field span-2">
             <label for="cantidad">Cantidad comprada</label>
@@ -2238,14 +2245,13 @@
     }
 
     function renderSizePicker(selected = $("#talla")?.value) {
-      const picker = $("#sizePicker");
-      const input = $("#talla");
+      const picker = $("#colorSizePickerButtons");
+      const input = $("#colorSizePicker");
       if (!picker || !input) return;
-      const selectedSizes = selectedSizeValues(selected);
-      const selectedKeys = new Set(selectedSizes.map(normalizeOptionKey));
-      input.value = selectedSizes.join(", ");
+      const selectedSize = selectedSizeValues(selected)[0] || "Única";
+      input.value = selectedSize;
       picker.innerHTML = uniqueOptions(FIXED_OPTIONS.tallas).map((size) => `
-        <button class="size-chip ${selectedKeys.has(normalizeOptionKey(size)) ? "active" : ""}" type="button" data-size="${escapeHtml(size)}">
+        <button class="size-chip ${normalizeOptionKey(size) === normalizeOptionKey(selectedSize) ? "active" : ""}" type="button" data-size="${escapeHtml(size)}">
           ${escapeHtml(size)}
         </button>
       `).join("");
@@ -2256,24 +2262,21 @@
     }
 
     function preferredSizeValue() {
-      return selectedSizeValues()[0] || "Única";
+      return $("#colorSizePicker")?.value || selectedSizeValues()[0] || "Única";
     }
 
     function refreshSizeControls(selectedSize = preferredSizeValue()) {
-      fillFixedSelect("colorSizePicker", sizeOptionValues(), selectedSize, "Talla");
+      renderSizePicker(selectedSize);
       $$("#colorItems .color-item-size").forEach((select) => {
         select.innerHTML = optionHtml(sizeOptionValues(), select.value || selectedSize, "Talla");
       });
     }
 
     function toggleSize(size) {
-      const current = selectedSizeValues();
       const key = normalizeOptionKey(size);
-      const exists = current.some((item) => normalizeOptionKey(item) === key);
-      const next = exists ? current.filter((item) => normalizeOptionKey(item) !== key) : [...current, size];
-      $("#talla").value = next.join(", ");
-      renderSizePicker($("#talla").value);
-      refreshSizeControls(size);
+      const selected = sizeOptionValues().find((item) => normalizeOptionKey(item) === key) || size;
+      $("#colorSizePicker").value = selected;
+      renderSizePicker(selected);
     }
 
     function colorSummary(items) {
@@ -2314,7 +2317,7 @@
       const completeItems = getColorItemsFromForm().filter((item) => item.color && item.talla && item.cantidad > 0);
       $("#cantidad").value = completeItems.reduce((sum, item) => sum + item.cantidad, 0) || "";
       $("#color").value = colorSummary(completeItems);
-      $("#talla").value = uniqueOptions(completeItems.map((item) => item.talla)).join(", ") || $("#talla").value;
+      $("#talla").value = uniqueOptions(completeItems.map((item) => item.talla)).join(", ");
       syncPurchaseTotals();
     }
 
