@@ -508,7 +508,7 @@
 
     .color-add-row {
       display: grid;
-      grid-template-columns: minmax(160px, 1fr) 120px auto auto;
+      grid-template-columns: minmax(160px, 1fr) 130px 120px auto auto;
       gap: 8px;
       align-items: stretch;
     }
@@ -520,7 +520,7 @@
 
     .color-item {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) 110px auto;
+      grid-template-columns: minmax(150px, 1fr) 130px 110px auto;
       gap: 8px;
       align-items: stretch;
       padding: 8px;
@@ -1670,17 +1670,18 @@
             </select>
           </div>
           <div class="field span-4">
-            <label for="colorPicker">Colores / cantidades compradas</label>
+            <label for="colorPicker">Colores / tallas / cantidades compradas</label>
             <input id="color" type="hidden" />
             <div class="color-builder">
               <div class="color-add-row">
                 <select id="colorPicker" aria-label="Color"></select>
+                <select id="colorSizePicker" aria-label="Talla"></select>
                 <input id="colorQuantity" type="number" min="1" step="1" value="1" aria-label="Cantidad del color" />
                 <button class="btn secondary" id="addColorItemBtn" type="button">Agregar color</button>
                 <button class="btn secondary" type="button" data-add-option="colores">Añadir color</button>
               </div>
               <div class="color-items" id="colorItems"></div>
-              <p class="size-help">Agrega una fila por cada color. La cantidad comprada se suma automáticamente.</p>
+              <p class="size-help">Para varias tallas del mismo modelo, agrega una fila por talla: M x 3, S x 2, etc.</p>
             </div>
           </div>
           <div class="field span-2">
@@ -2250,6 +2251,21 @@
       `).join("");
     }
 
+    function sizeOptionValues() {
+      return uniqueOptions(FIXED_OPTIONS.tallas);
+    }
+
+    function preferredSizeValue() {
+      return selectedSizeValues()[0] || "Única";
+    }
+
+    function refreshSizeControls(selectedSize = preferredSizeValue()) {
+      fillFixedSelect("colorSizePicker", sizeOptionValues(), selectedSize, "Talla");
+      $$("#colorItems .color-item-size").forEach((select) => {
+        select.innerHTML = optionHtml(sizeOptionValues(), select.value || selectedSize, "Talla");
+      });
+    }
+
     function toggleSize(size) {
       const current = selectedSizeValues();
       const key = normalizeOptionKey(size);
@@ -2257,10 +2273,11 @@
       const next = exists ? current.filter((item) => normalizeOptionKey(item) !== key) : [...current, size];
       $("#talla").value = next.join(", ");
       renderSizePicker($("#talla").value);
+      refreshSizeControls(size);
     }
 
     function colorSummary(items) {
-      return items.map((item) => `${item.color} (${item.cantidad})`).join(", ");
+      return items.map((item) => `${item.color} / ${item.talla || "Única"} (${item.cantidad})`).join(", ");
     }
 
     function normalizeColorItems(purchase) {
@@ -2268,6 +2285,7 @@
       let items = sourceItems.map((item, index) => ({
         id: item.id || `${purchase.id || "NEO"}-COLOR-${index + 1}`,
         color: String(item.color || "").trim(),
+        talla: String(item.talla || item.size || purchase.talla || "Única").trim(),
         cantidad: numberValue(item.cantidad ?? item.quantity ?? item.unidades)
       })).filter((item) => item.color && item.cantidad > 0);
 
@@ -2275,6 +2293,7 @@
         items = [{
           id: `${purchase.id || "NEO"}-COLOR-1`,
           color: purchase.color,
+          talla: purchase.talla || "Única",
           cantidad: numberValue(purchase.cantidad) || 1
         }];
       }
@@ -2286,21 +2305,25 @@
       return $$("#colorItems .color-item").map((row, index) => ({
         id: row.dataset.id || `COLOR-${index + 1}`,
         color: row.querySelector(".color-item-select").value.trim(),
+        talla: row.querySelector(".color-item-size").value.trim() || "Única",
         cantidad: numberValue(row.querySelector(".color-item-quantity").value)
-      })).filter((item) => item.color || item.cantidad > 0);
+      })).filter((item) => item.color || item.talla || item.cantidad > 0);
     }
 
     function syncColorSummaryFromRows() {
-      const completeItems = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
+      const completeItems = getColorItemsFromForm().filter((item) => item.color && item.talla && item.cantidad > 0);
       $("#cantidad").value = completeItems.reduce((sum, item) => sum + item.cantidad, 0) || "";
       $("#color").value = colorSummary(completeItems);
+      $("#talla").value = uniqueOptions(completeItems.map((item) => item.talla)).join(", ") || $("#talla").value;
       syncPurchaseTotals();
     }
 
     function renderColorItems(items = []) {
       const container = $("#colorItems");
       if (!container) return;
-      const normalizedItems = items.filter((item) => item.color && numberValue(item.cantidad) > 0);
+      const normalizedItems = items
+        .map((item) => ({ ...item, talla: item.talla || "Única" }))
+        .filter((item) => item.color && item.talla && numberValue(item.cantidad) > 0);
       if (!normalizedItems.length) {
         container.innerHTML = `<div class="color-empty">Aún no agregas colores para esta compra.</div>`;
         syncColorSummaryFromRows();
@@ -2311,6 +2334,9 @@
         <div class="color-item" data-id="${escapeHtml(item.id || `COLOR-${index + 1}`)}">
           <select class="color-item-select" aria-label="Color ${index + 1}">
             ${optionHtml(availableOptions("colores"), item.color, "Color")}
+          </select>
+          <select class="color-item-size" aria-label="Talla ${index + 1}">
+            ${optionHtml(sizeOptionValues(), item.talla || "Única", "Talla")}
           </select>
           <input class="color-item-quantity" type="number" min="1" step="1" value="${escapeHtml(item.cantidad)}" aria-label="Cantidad ${index + 1}" />
           <button class="btn small secondary" type="button" data-remove-color="${index}">Quitar</button>
@@ -2328,22 +2354,31 @@
 
     function addColorItemFromControls() {
       const color = $("#colorPicker").value.trim();
+      const talla = $("#colorSizePicker").value.trim() || preferredSizeValue();
       const cantidad = Math.max(1, Math.round(numberValue($("#colorQuantity").value) || 1));
       if (!color) {
         toast("Selecciona un color.");
         return;
       }
+      if (!talla) {
+        toast("Selecciona una talla.");
+        return;
+      }
 
-      const items = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
-      const existing = items.find((item) => normalizeOptionKey(item.color) === normalizeOptionKey(color));
+      const items = getColorItemsFromForm().filter((item) => item.color && item.talla && item.cantidad > 0);
+      const existing = items.find((item) => {
+        return normalizeOptionKey(item.color) === normalizeOptionKey(color)
+          && normalizeOptionKey(item.talla) === normalizeOptionKey(talla);
+      });
       if (existing) {
         existing.cantidad += cantidad;
       } else {
-        items.push({ id: `COLOR-${Date.now()}`, color, cantidad });
+        items.push({ id: `COLOR-${Date.now()}`, color, talla, cantidad });
       }
 
       renderColorItems(items);
       $("#colorPicker").value = "";
+      $("#colorSizePicker").value = preferredSizeValue();
       $("#colorQuantity").value = 1;
     }
 
@@ -2370,6 +2405,7 @@
       fillFixedSelect("categoria", availableOptions("categorias"), selected.categoria, "Seleccionar categoría");
       refreshColorControls("");
       renderSizePicker(selected.talla || $("#talla")?.value || "");
+      refreshSizeControls(preferredSizeValue());
     }
 
     function samplePurchases() {
@@ -2586,6 +2622,7 @@
           return colorItems.map((item, index) => normalizeArrivalItem(purchase, {
             id: `${purchase.id}-REC-${index + 1}`,
             color: item.color,
+            talla: item.talla || purchase.talla || "Única",
             cantidadComprada: item.cantidad,
             cantidadRecibida: item.cantidad
           }, index));
@@ -2634,13 +2671,14 @@
       const totalSoles = round2(cantidad * costoUnitarioSoles);
       const totalDolares = round2(totalSoles / tipoCambioCompra);
       const color = colorItems.length ? colorSummary(colorItems) : (purchase.color || "");
+      const talla = uniqueOptions(colorItems.map((item) => item.talla)).join(", ") || purchase.talla || "";
       const baseForArrival = {
         ...purchase,
         id: normalizedId,
         prenda: purchase.prenda || "",
         color,
         colorItems,
-        talla: purchase.talla || "",
+        talla,
         cantidad
       };
       const envio = purchase.envio ? {
@@ -2672,7 +2710,7 @@
         categoria: purchase.categoria || "",
         color,
         colorItems,
-        talla: purchase.talla || "",
+        talla,
         cantidad,
         costoUnitarioSoles,
         tipoCambioCompra,
@@ -3715,7 +3753,8 @@
       $("#colorQuantity").value = 1;
       $("#color").value = "";
       renderColorItems([]);
-      renderSizePicker("");
+      renderSizePicker("Única");
+      refreshSizeControls("Única");
       $("#tipoCambioCompra").value = DEFAULT_RATE;
       $("#estadoCompra").value = "pedido";
       $("#fechaCompra").value = today();
@@ -3731,6 +3770,7 @@
       $("#talla").value = purchase.talla;
       renderSizePicker(purchase.talla);
       renderColorItems(normalizeColorItems(purchase));
+      refreshSizeControls(preferredSizeValue());
       $("#color").value = purchase.color;
       $("#cantidad").value = purchase.cantidad;
       $("#costoUnitarioSoles").value = purchase.costoUnitarioSoles;
@@ -3744,8 +3784,9 @@
     }
 
     function buildPurchaseFromForm(existing) {
-      const colorItems = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
+      const colorItems = getColorItemsFromForm().filter((item) => item.color && item.talla && item.cantidad > 0);
       const cantidad = colorItems.reduce((sum, item) => sum + numberValue(item.cantidad), 0);
+      const talla = uniqueOptions(colorItems.map((item) => item.talla)).join(", ");
       const costoUnitarioSoles = numberValue($("#costoUnitarioSoles").value);
       const tipoCambioCompra = numberValue($("#tipoCambioCompra").value) || DEFAULT_RATE;
       const totalSoles = round2(cantidad * costoUnitarioSoles);
@@ -3757,7 +3798,7 @@
         categoria: $("#categoria").value.trim(),
         color: colorSummary(colorItems),
         colorItems,
-        talla: $("#talla").value.trim(),
+        talla,
         cantidad,
         costoUnitarioSoles,
         tipoCambioCompra,
@@ -3776,8 +3817,8 @@
 
     function savePurchaseFromForm(event) {
       event.preventDefault();
-      if (!getColorItemsFromForm().some((item) => item.color && item.cantidad > 0)) {
-        toast("Agrega al menos un color con cantidad.");
+      if (!getColorItemsFromForm().some((item) => item.color && item.talla && item.cantidad > 0)) {
+        toast("Agrega al menos un color, talla y cantidad.");
         return;
       }
       if (!$("#talla").value.trim()) {
@@ -4299,7 +4340,7 @@
         if (event.target.matches(".color-item-quantity")) syncColorSummaryFromRows();
       });
       $("#colorItems").addEventListener("change", (event) => {
-        if (event.target.matches(".color-item-select")) syncColorSummaryFromRows();
+        if (event.target.matches(".color-item-select, .color-item-size")) syncColorSummaryFromRows();
       });
       $("#shipmentForm").addEventListener("submit", saveShipment);
       $("#arrivalForm").addEventListener("submit", saveArrival);
