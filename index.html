@@ -261,7 +261,6 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
-      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -454,28 +453,6 @@
       grid-column: 1 / -1;
     }
 
-    .transaction-form .form-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .transaction-form .form-grid .span-2,
-    .transaction-form .form-grid .span-4 {
-      grid-column: 1 / -1;
-    }
-
-    .transaction-form .form-actions .btn {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .transfer-field {
-      border-color: #efb8ca;
-      background: #fff8fb;
-      color: var(--ink);
-      font-weight: 850;
-    }
-
     .option-control {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -486,10 +463,6 @@
     .option-control .btn {
       white-space: nowrap;
       min-height: 42px;
-    }
-
-    .option-control-compact {
-      margin-top: 8px;
     }
 
     .size-picker {
@@ -526,6 +499,46 @@
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.35;
+    }
+
+    .color-builder {
+      display: grid;
+      gap: 10px;
+    }
+
+    .color-add-row {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 120px auto auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .color-items {
+      display: grid;
+      gap: 8px;
+    }
+
+    .color-item {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) 110px auto;
+      gap: 8px;
+      align-items: stretch;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fffaf6;
+    }
+
+    .color-item .btn {
+      white-space: nowrap;
+    }
+
+    .color-empty {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.74);
     }
 
     .subhead {
@@ -566,6 +579,8 @@
 
     .status-badge.enviada,
     .status-badge.proceso,
+    .status-badge.pedido,
+    .timeline-dot.pedido,
     .timeline-dot.proceso {
       background: var(--process-bg);
       color: var(--process);
@@ -644,6 +659,7 @@
     }
 
     .timeline-step.proceso,
+    .timeline-step.pedido,
     .timeline-step.enviada {
       border-color: var(--process-line);
       background: linear-gradient(180deg, #ffffff 0%, var(--process-bg) 165%);
@@ -665,6 +681,7 @@
     }
 
     .timeline-step.proceso::after,
+    .timeline-step.pedido::after,
     .timeline-step.enviada::after {
       border-color: var(--process-line);
     }
@@ -968,6 +985,7 @@
     }
 
     .timeline-manager-step.proceso,
+    .timeline-manager-step.pedido,
     .timeline-manager-step.enviada {
       border-color: var(--process-line);
       background: linear-gradient(180deg, #ffffff 0%, var(--process-bg) 165%);
@@ -985,6 +1003,7 @@
     }
 
     .timeline-manager-step.proceso::after,
+    .timeline-manager-step.pedido::after,
     .timeline-manager-step.enviada::after {
       border-color: var(--process-line);
     }
@@ -1054,80 +1073,6 @@
 
     .timeline-payment-form {
       margin-top: 0;
-    }
-
-    .history-metrics {
-      grid-template-columns: repeat(4, minmax(150px, 1fr));
-    }
-
-    .history-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
-    }
-
-    .history-card {
-      display: grid;
-      gap: 14px;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: var(--shadow);
-      min-width: 0;
-    }
-
-    .history-card-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .history-card-title {
-      min-width: 0;
-    }
-
-    .history-card-title h3 {
-      margin: 0;
-      font-size: 1rem;
-      overflow-wrap: anywhere;
-    }
-
-    .history-card-title p,
-    .history-card-note {
-      margin: 5px 0 0;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .history-card-stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .history-card-stat {
-      padding: 11px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fffaf6;
-      min-width: 0;
-    }
-
-    .history-card-stat span {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 850;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .history-card-stat strong {
-      overflow-wrap: anywhere;
     }
 
     .detail-grid {
@@ -1337,10 +1282,6 @@
         grid-template-columns: 1fr;
       }
 
-      .transaction-form .form-grid {
-        grid-template-columns: 1fr;
-      }
-
       .form-grid .span-2,
       .form-grid .span-4 {
         grid-column: auto;
@@ -1385,13 +1326,22 @@
       .filters {
         grid-template-columns: 1fr;
       }
+
+      .color-add-row,
+      .color-item {
+        grid-template-columns: 1fr;
+      }
+
+      .option-control {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 480px) {
       .header-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
-        max-width: 100%;
+        grid-template-columns: 1fr;
+        width: min(340px, calc(100vw - 28px));
+        max-width: min(340px, calc(100vw - 28px));
       }
 
       .tabs,
@@ -1401,15 +1351,9 @@
       .dashboard-grid,
       .timeline-workspace,
       .timeline-main,
-      .timeline-overview,
-      .history-grid {
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .metrics,
-      .history-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .timeline-overview {
+        width: min(340px, calc(100vw - 28px));
+        max-width: min(340px, calc(100vw - 28px));
       }
 
       .tabs {
@@ -1425,64 +1369,7 @@
       }
 
       .section-head p {
-        max-width: 100%;
-      }
-
-      .content-box,
-      .form-card,
-      .timeline-stage,
-      .timeline-money-panel,
-      .timeline-next-panel,
-      .history-card {
-        padding: 14px;
-      }
-
-      .subhead {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .row-actions,
-      .toolbar,
-      .form-actions,
-      .dialog-actions,
-      .timeline-step-actions {
-        width: 100%;
-      }
-
-      .row-actions .btn,
-      .toolbar .btn,
-      .form-actions .btn,
-      .dialog-actions .btn,
-      .timeline-step-actions .btn {
-        width: 100%;
-      }
-
-      input,
-      select,
-      textarea,
-      .btn {
-        min-height: 44px;
-      }
-
-      .option-control {
-        grid-template-columns: 1fr;
-      }
-
-      .size-chip {
-        min-height: 38px;
-        padding: 8px 13px;
-      }
-
-      .history-card-head,
-      .timeline-stage-head,
-      .timeline-step-head,
-      .timeline-transaction-row {
-        flex-direction: column;
-      }
-
-      .history-card-stats {
-        grid-template-columns: 1fr;
+        max-width: min(340px, calc(100vw - 28px));
       }
     }
 
@@ -1527,7 +1414,6 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
       <button class="tab-btn" data-tab="timeline" type="button">Línea de tiempo</button>
-      <button class="tab-btn" data-tab="history" type="button">Historial</button>
       <button class="tab-btn" data-tab="purchases" type="button">Compras</button>
       <button class="tab-btn" data-tab="corroboration" type="button">Corroboración</button>
       <button class="tab-btn" data-tab="form" type="button">Formulario</button>
@@ -1643,7 +1529,7 @@
               </div>
               <div class="field">
                 <label for="timelinePaymentMethod">Método</label>
-                <input class="transfer-field" id="timelinePaymentMethod" value="Transferencia" readonly />
+                <input id="timelinePaymentMethod" placeholder="Efectivo, transferencia..." />
               </div>
               <div class="field span-2">
                 <label for="timelinePaymentReference">Referencia</label>
@@ -1661,21 +1547,6 @@
           </form>
         </div>
       </div>
-    </section>
-
-    <section class="panel" id="historyPanel">
-      <div class="section-head">
-        <div>
-          <h2>Historial de compras realizadas</h2>
-          <p>Compras cerradas con mercadería recibida correctamente y pagos completos.</p>
-        </div>
-        <div class="toolbar">
-          <button class="btn secondary" data-tab-jump="timeline" type="button">Ver pendientes</button>
-          <button class="btn secondary" data-tab-jump="purchases" type="button">Ver tabla completa</button>
-        </div>
-      </div>
-      <div class="metrics history-metrics" id="historyMetrics"></div>
-      <div id="historyGrid" class="history-grid"></div>
     </section>
 
     <section class="panel" id="purchasesPanel">
@@ -1775,52 +1646,52 @@
             <label for="proveedor">Proveedor</label>
             <div class="option-control">
               <select id="proveedor" required></select>
-              <button class="btn small secondary" type="button" data-add-option="proveedores" data-option-target="proveedor">Añadir</button>
+              <button class="btn secondary" type="button" data-add-option="proveedores">Añadir</button>
             </div>
           </div>
           <div class="field">
             <label for="prenda">Prenda</label>
-            <div class="option-control">
-              <select id="prenda" required></select>
-              <button class="btn small secondary" type="button" data-add-option="prendas" data-option-target="prenda">Añadir</button>
-            </div>
+            <input id="prenda" required placeholder="Ej. Vestido Verónica" />
           </div>
           <div class="field">
             <label for="categoria">Categoría</label>
             <div class="option-control">
               <select id="categoria" required></select>
-              <button class="btn small secondary" type="button" data-add-option="categorias" data-option-target="categoria">Añadir</button>
+              <button class="btn secondary" type="button" data-add-option="categorias">Añadir</button>
             </div>
           </div>
           <div class="field">
             <label for="estadoCompra">Estado compra</label>
             <select id="estadoCompra">
+              <option value="pedido">Pedido</option>
               <option value="completado">Completada</option>
               <option value="proceso">En proceso</option>
-              <option value="pendiente">Pendiente</option>
               <option value="problema">Con problema</option>
             </select>
           </div>
-          <div class="field">
-            <label for="color">Color</label>
-            <div class="option-control">
-              <select id="color"></select>
-              <button class="btn small secondary" type="button" data-add-option="colores" data-option-target="color">Añadir</button>
+          <div class="field span-4">
+            <label for="colorPicker">Colores / cantidades compradas</label>
+            <input id="color" type="hidden" />
+            <div class="color-builder">
+              <div class="color-add-row">
+                <select id="colorPicker" aria-label="Color"></select>
+                <input id="colorQuantity" type="number" min="1" step="1" value="1" aria-label="Cantidad del color" />
+                <button class="btn secondary" id="addColorItemBtn" type="button">Agregar color</button>
+                <button class="btn secondary" type="button" data-add-option="colores">Añadir color</button>
+              </div>
+              <div class="color-items" id="colorItems"></div>
+              <p class="size-help">Agrega una fila por cada color. La cantidad comprada se suma automáticamente.</p>
             </div>
           </div>
           <div class="field span-2">
             <label for="talla">Talla</label>
             <input id="talla" type="hidden" />
             <div class="size-picker" id="sizePicker" aria-label="Seleccionar tallas"></div>
-            <div class="option-control option-control-compact">
-              <input id="customTallaInput" placeholder="Añadir talla: 26, 28, Plus..." />
-              <button class="btn small secondary" id="addTallaBtn" type="button">Añadir</button>
-            </div>
-            <p class="size-help">Puedes tocar varias tallas. Se guardarán como S, M, L.</p>
+            <p class="size-help">Puedes tocar una o varias tallas. Talla Única aparece una sola vez.</p>
           </div>
-          <div class="field">
+          <div class="field span-2">
             <label for="cantidad">Cantidad comprada</label>
-            <input id="cantidad" type="number" min="1" step="1" required />
+            <input id="cantidad" type="number" min="1" step="1" readonly required />
           </div>
           <div class="field">
             <label for="costoUnitarioSoles">Costo unitario S/</label>
@@ -1863,7 +1734,7 @@
       </div>
       <div class="metrics" id="transactionMetrics"></div>
       <div class="split">
-        <form class="form-card transaction-form" id="transactionForm">
+        <form class="form-card" id="transactionForm">
           <div class="subhead">
             <h3>Nueva transacción</h3>
             <span class="pill">Caja NEOMAR</span>
@@ -1901,7 +1772,7 @@
             </div>
             <div class="field">
               <label for="transactionMethod">Método de pago</label>
-              <input class="transfer-field" id="transactionMethod" value="Transferencia" readonly />
+              <input id="transactionMethod" placeholder="Efectivo, transferencia..." />
             </div>
             <div class="field span-2">
               <label for="transactionReference">Referencia</label>
@@ -2111,7 +1982,7 @@
 
   <script>
     const STORAGE_KEY = "neomar_compras_v1";
-    const OPTIONS_STORAGE_KEY = "neomar_custom_options_v1";
+    const OPTIONS_STORAGE_KEY = "neomar_compras_options_v1";
     const DEFAULT_RATE = 3.75;
     const FIXED_OPTIONS = {
       proveedores: [
@@ -2189,10 +2060,6 @@
         "L",
         "XL",
         "XXL",
-        "S, M",
-        "M, L",
-        "S, M, L",
-        "28, 30, 32",
         "Única"
       ]
     };
@@ -2205,10 +2072,8 @@
       timelineSearch: "",
       customOptions: {
         proveedores: [],
-        prendas: [],
         categorias: [],
-        colores: [],
-        tallas: []
+        colores: []
       }
     };
 
@@ -2285,76 +2150,41 @@
       if (dialog?.open) dialog.close();
     }
 
-    function defaultCustomOptions() {
-      return {
-        proveedores: [],
-        prendas: [],
-        categorias: [],
-        colores: [],
-        tallas: []
-      };
-    }
-
-    function normalizeOptionValue(value) {
-      return String(value ?? "").trim().replace(/\s+/g, " ");
+    function normalizeOptionKey(value) {
+      return String(value || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
     }
 
     function uniqueOptions(values) {
       const seen = new Set();
-      return values.reduce((result, value) => {
-        const clean = normalizeOptionValue(value);
-        const key = clean.toLocaleLowerCase("es");
-        if (!clean || seen.has(key)) return result;
-        seen.add(key);
-        result.push(clean);
-        return result;
-      }, []);
+      return values
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+        .filter((value) => {
+          const key = normalizeOptionKey(value);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
     }
 
-    function splitSizeValue(value) {
-      return String(value ?? "")
-        .split(",")
-        .map((part) => normalizeOptionValue(part))
-        .filter(Boolean);
-    }
-
-    function purchaseOptionValues(key) {
-      const fieldByKey = {
-        proveedores: "proveedor",
-        prendas: "prenda",
-        categorias: "categoria",
-        colores: "color"
-      };
-
-      if (key === "tallas") {
-        return state.purchases.flatMap((purchase) => splitSizeValue(purchase.talla));
-      }
-
-      const field = fieldByKey[key];
-      return field ? state.purchases.map((purchase) => purchase[field]) : [];
-    }
-
-    function availableOptions(key) {
-      const baseOptions = key === "tallas"
-        ? FIXED_OPTIONS.tallas.flatMap(splitSizeValue)
-        : FIXED_OPTIONS[key] || [];
-      return uniqueOptions([
-        ...baseOptions,
-        ...(state.customOptions[key] || []),
-        ...purchaseOptionValues(key)
-      ]);
+    function splitStoredSizes(value) {
+      return uniqueOptions(String(value || "").split(",").map((size) => size.trim()))
+        .filter((size) => !["28", "30", "32"].includes(normalizeOptionKey(size)));
     }
 
     function loadCustomOptions() {
-      const defaults = defaultCustomOptions();
       try {
         const parsed = JSON.parse(localStorage.getItem(OPTIONS_STORAGE_KEY) || "{}");
-        state.customOptions = Object.fromEntries(Object.keys(defaults).map((key) => {
-          return [key, uniqueOptions(Array.isArray(parsed[key]) ? parsed[key] : [])];
-        }));
+        ["proveedores", "categorias", "colores"].forEach((key) => {
+          state.customOptions[key] = uniqueOptions(Array.isArray(parsed[key]) ? parsed[key] : []);
+        });
       } catch (error) {
         console.error(error);
-        state.customOptions = defaults;
+        state.customOptions = { proveedores: [], categorias: [], colores: [] };
       }
     }
 
@@ -2362,32 +2192,167 @@
       localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(state.customOptions));
     }
 
-    function addCustomOption(key, value) {
-      const clean = normalizeOptionValue(value);
-      if (!clean || !state.customOptions[key]) return "";
-      const existing = availableOptions(key).some((option) => option.toLocaleLowerCase("es") === clean.toLocaleLowerCase("es"));
-      if (!existing) {
-        state.customOptions[key].push(clean);
-        state.customOptions[key] = uniqueOptions(state.customOptions[key]);
-        saveCustomOptions();
+    function purchaseOptionValues(type) {
+      if (type === "proveedores") return state.purchases.map((purchase) => purchase.proveedor);
+      if (type === "categorias") return state.purchases.map((purchase) => purchase.categoria);
+      if (type === "colores") {
+        return state.purchases.flatMap((purchase) => {
+          const items = Array.isArray(purchase.colorItems) ? purchase.colorItems.map((item) => item.color) : [];
+          return items.length ? items : [purchase.color];
+        });
       }
-      return clean;
+      return [];
     }
 
-    function currentPurchaseSelection() {
-      return {
-        proveedor: $("#proveedor")?.value || "",
-        prenda: $("#prenda")?.value || "",
-        categoria: $("#categoria")?.value || "",
-        color: $("#color")?.value || "",
-        talla: $("#talla")?.value || ""
+    function availableOptions(type) {
+      return uniqueOptions([
+        ...(FIXED_OPTIONS[type] || []),
+        ...(state.customOptions[type] || []),
+        ...purchaseOptionValues(type)
+      ]);
+    }
+
+    function addCustomOption(type) {
+      const labels = {
+        proveedores: "proveedor",
+        categorias: "categoría",
+        colores: "color"
       };
+      const value = prompt(`Nuevo ${labels[type] || "valor"}`);
+      const cleanValue = String(value || "").trim();
+      if (!cleanValue) return;
+
+      const options = uniqueOptions([...(state.customOptions[type] || []), cleanValue]);
+      state.customOptions[type] = options;
+      saveCustomOptions();
+      fillPurchaseFixedSelects();
+      if (type === "colores") $("#colorPicker").value = cleanValue;
+      if (type === "proveedores") $("#proveedor").value = cleanValue;
+      if (type === "categorias") $("#categoria").value = cleanValue;
+      toast("Opción agregada.");
+    }
+
+    function selectedSizeValues(value = $("#talla")?.value) {
+      return splitStoredSizes(value);
+    }
+
+    function renderSizePicker(selected = $("#talla")?.value) {
+      const picker = $("#sizePicker");
+      const input = $("#talla");
+      if (!picker || !input) return;
+      const selectedSizes = selectedSizeValues(selected);
+      const selectedKeys = new Set(selectedSizes.map(normalizeOptionKey));
+      input.value = selectedSizes.join(", ");
+      picker.innerHTML = uniqueOptions(FIXED_OPTIONS.tallas).map((size) => `
+        <button class="size-chip ${selectedKeys.has(normalizeOptionKey(size)) ? "active" : ""}" type="button" data-size="${escapeHtml(size)}">
+          ${escapeHtml(size)}
+        </button>
+      `).join("");
+    }
+
+    function toggleSize(size) {
+      const current = selectedSizeValues();
+      const key = normalizeOptionKey(size);
+      const exists = current.some((item) => normalizeOptionKey(item) === key);
+      const next = exists ? current.filter((item) => normalizeOptionKey(item) !== key) : [...current, size];
+      $("#talla").value = next.join(", ");
+      renderSizePicker($("#talla").value);
+    }
+
+    function colorSummary(items) {
+      return items.map((item) => `${item.color} (${item.cantidad})`).join(", ");
+    }
+
+    function normalizeColorItems(purchase) {
+      const sourceItems = Array.isArray(purchase.colorItems) ? purchase.colorItems : [];
+      let items = sourceItems.map((item, index) => ({
+        id: item.id || `${purchase.id || "NEO"}-COLOR-${index + 1}`,
+        color: String(item.color || "").trim(),
+        cantidad: numberValue(item.cantidad ?? item.quantity ?? item.unidades)
+      })).filter((item) => item.color && item.cantidad > 0);
+
+      if (!items.length && purchase.color) {
+        items = [{
+          id: `${purchase.id || "NEO"}-COLOR-1`,
+          color: purchase.color,
+          cantidad: numberValue(purchase.cantidad) || 1
+        }];
+      }
+
+      return items;
+    }
+
+    function getColorItemsFromForm() {
+      return $$("#colorItems .color-item").map((row, index) => ({
+        id: row.dataset.id || `COLOR-${index + 1}`,
+        color: row.querySelector(".color-item-select").value.trim(),
+        cantidad: numberValue(row.querySelector(".color-item-quantity").value)
+      })).filter((item) => item.color || item.cantidad > 0);
+    }
+
+    function syncColorSummaryFromRows() {
+      const completeItems = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
+      $("#cantidad").value = completeItems.reduce((sum, item) => sum + item.cantidad, 0) || "";
+      $("#color").value = colorSummary(completeItems);
+      syncPurchaseTotals();
+    }
+
+    function renderColorItems(items = []) {
+      const container = $("#colorItems");
+      if (!container) return;
+      const normalizedItems = items.filter((item) => item.color && numberValue(item.cantidad) > 0);
+      if (!normalizedItems.length) {
+        container.innerHTML = `<div class="color-empty">Aún no agregas colores para esta compra.</div>`;
+        syncColorSummaryFromRows();
+        return;
+      }
+
+      container.innerHTML = normalizedItems.map((item, index) => `
+        <div class="color-item" data-id="${escapeHtml(item.id || `COLOR-${index + 1}`)}">
+          <select class="color-item-select" aria-label="Color ${index + 1}">
+            ${optionHtml(availableOptions("colores"), item.color, "Color")}
+          </select>
+          <input class="color-item-quantity" type="number" min="1" step="1" value="${escapeHtml(item.cantidad)}" aria-label="Cantidad ${index + 1}" />
+          <button class="btn small secondary" type="button" data-remove-color="${index}">Quitar</button>
+        </div>
+      `).join("");
+      syncColorSummaryFromRows();
+    }
+
+    function refreshColorControls(selectedColor = $("#colorPicker")?.value) {
+      fillFixedSelect("colorPicker", availableOptions("colores"), selectedColor, "Seleccionar color");
+      $$("#colorItems .color-item-select").forEach((select) => {
+        select.innerHTML = optionHtml(availableOptions("colores"), select.value, "Color");
+      });
+    }
+
+    function addColorItemFromControls() {
+      const color = $("#colorPicker").value.trim();
+      const cantidad = Math.max(1, Math.round(numberValue($("#colorQuantity").value) || 1));
+      if (!color) {
+        toast("Selecciona un color.");
+        return;
+      }
+
+      const items = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
+      const existing = items.find((item) => normalizeOptionKey(item.color) === normalizeOptionKey(color));
+      if (existing) {
+        existing.cantidad += cantidad;
+      } else {
+        items.push({ id: `COLOR-${Date.now()}`, color, cantidad });
+      }
+
+      renderColorItems(items);
+      $("#colorPicker").value = "";
+      $("#colorQuantity").value = 1;
     }
 
     function optionHtml(values, selected, placeholder) {
       const selectedValue = selected || "";
-      const cleanValues = Array.from(new Set(values.filter(Boolean)));
-      if (selectedValue && !cleanValues.includes(selectedValue)) cleanValues.unshift(selectedValue);
+      const cleanValues = uniqueOptions(values);
+      if (selectedValue && !cleanValues.some((value) => normalizeOptionKey(value) === normalizeOptionKey(selectedValue))) {
+        cleanValues.unshift(selectedValue);
+      }
       return `<option value="">${escapeHtml(placeholder || "Seleccionar...")}</option>` + cleanValues.map((value) => {
         return `<option value="${escapeHtml(value)}" ${value === selectedValue ? "selected" : ""}>${escapeHtml(value)}</option>`;
       }).join("");
@@ -2401,60 +2366,10 @@
 
     function fillPurchaseFixedSelects(selected = {}) {
       fillFixedSelect("proveedor", availableOptions("proveedores"), selected.proveedor, "Seleccionar proveedor");
-      fillFixedSelect("prenda", availableOptions("prendas"), selected.prenda, "Seleccionar prenda");
+      fillFixedSelect("categoria", FIXED_OPTIONS.categorias, selected.categoria, "Seleccionar categoría");
       fillFixedSelect("categoria", availableOptions("categorias"), selected.categoria, "Seleccionar categoría");
-      fillFixedSelect("color", availableOptions("colores"), selected.color, "Seleccionar color");
-      renderSizePicker(selected.talla || "");
-    }
-
-    function renderSizePicker(selected = $("#talla")?.value || "") {
-      const picker = $("#sizePicker");
-      if (!picker) return;
-      const selectedValues = uniqueOptions(splitSizeValue(selected));
-      const selectedKeys = new Set(selectedValues.map((value) => value.toLocaleLowerCase("es")));
-      const options = uniqueOptions([...availableOptions("tallas"), ...selectedValues]);
-      picker.innerHTML = options.map((size) => {
-        const active = selectedKeys.has(size.toLocaleLowerCase("es"));
-        return `<button class="size-chip ${active ? "active" : ""}" type="button" data-size-option="${escapeHtml(size)}">${escapeHtml(size)}</button>`;
-      }).join("");
-      $("#talla").value = selectedValues.join(", ");
-    }
-
-    function syncSizePickerValue() {
-      const selected = $$("#sizePicker .size-chip.active").map((button) => button.dataset.sizeOption);
-      $("#talla").value = uniqueOptions(selected).join(", ");
-    }
-
-    function addOptionFromPrompt(key, targetId) {
-      const labels = {
-        proveedores: "proveedor",
-        prendas: "prenda",
-        categorias: "categoría",
-        colores: "color"
-      };
-      const value = prompt(`Agregar ${labels[key] || "opción"}`);
-      const clean = addCustomOption(key, value);
-      if (!clean) return;
-      const selection = currentPurchaseSelection();
-      selection[targetId] = clean;
-      fillPurchaseFixedSelects(selection);
-      const target = $(`#${targetId}`);
-      if (target) target.value = clean;
-      toast(`${clean} agregado.`);
-    }
-
-    function addCustomTalla() {
-      const input = $("#customTallaInput");
-      const sizes = uniqueOptions(splitSizeValue(input.value));
-      if (!sizes.length) {
-        input.focus();
-        return;
-      }
-      const selected = uniqueOptions([...splitSizeValue($("#talla").value), ...sizes]);
-      sizes.forEach((size) => addCustomOption("tallas", size));
-      renderSizePicker(selected.join(", "));
-      input.value = "";
-      toast(`${sizes.join(", ")} agregado.`);
+      refreshColorControls("");
+      renderSizePicker(selected.talla || $("#talla")?.value || "");
     }
 
     function samplePurchases() {
@@ -2511,7 +2426,7 @@
               montoSoles: 48,
               tipoCambio: 3.76,
               montoDolares: 12.77,
-              metodoPago: "Transferencia",
+              metodoPago: "Efectivo",
               referencia: "Guía SH-884219",
               observacion: "Transporte Lima a Ecuador."
             }
@@ -2666,6 +2581,16 @@
       }
 
       if (!llegada) {
+        const colorItems = normalizeColorItems(purchase);
+        if (colorItems.length) {
+          return colorItems.map((item, index) => normalizeArrivalItem(purchase, {
+            id: `${purchase.id}-REC-${index + 1}`,
+            color: item.color,
+            cantidadComprada: item.cantidad,
+            cantidadRecibida: item.cantidad
+          }, index));
+        }
+
         return [normalizeArrivalItem(purchase, {
           cantidadComprada: purchase.cantidad,
           cantidadRecibida: purchase.cantidad
@@ -2700,17 +2625,21 @@
     }
 
     function normalizePurchase(purchase) {
-      const cantidad = numberValue(purchase.cantidad);
+      const normalizedId = purchase.id || makeId();
+      const colorItems = normalizeColorItems({ ...purchase, id: normalizedId });
+      const colorQuantity = colorItems.reduce((sum, item) => sum + numberValue(item.cantidad), 0);
+      const cantidad = colorQuantity || numberValue(purchase.cantidad);
       const costoUnitarioSoles = numberValue(purchase.costoUnitarioSoles);
       const tipoCambioCompra = numberValue(purchase.tipoCambioCompra) || DEFAULT_RATE;
       const totalSoles = round2(cantidad * costoUnitarioSoles);
       const totalDolares = round2(totalSoles / tipoCambioCompra);
-      const normalizedId = purchase.id || makeId();
+      const color = colorItems.length ? colorSummary(colorItems) : (purchase.color || "");
       const baseForArrival = {
         ...purchase,
         id: normalizedId,
         prenda: purchase.prenda || "",
-        color: purchase.color || "",
+        color,
+        colorItems,
         talla: purchase.talla || "",
         cantidad
       };
@@ -2741,7 +2670,8 @@
         proveedor: purchase.proveedor || "",
         prenda: purchase.prenda || "",
         categoria: purchase.categoria || "",
-        color: purchase.color || "",
+        color,
+        colorItems,
         talla: purchase.talla || "",
         cantidad,
         costoUnitarioSoles,
@@ -2749,7 +2679,7 @@
         totalSoles,
         totalDolares,
         fechaCompra: purchase.fechaCompra || today(),
-        estadoCompra: purchase.estadoCompra || "completado",
+        estadoCompra: purchase.estadoCompra || "pedido",
         observaciones: purchase.observaciones || "",
         envio,
         llegada,
@@ -2767,11 +2697,11 @@
       return {
         id: transaction.id || `TX-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
         fecha: transaction.fecha || today(),
-        tipo: transactionTypeKey(transaction.tipo || "Pago de compra"),
+        tipo: transaction.tipo || "Pago de compra",
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: "Transferencia",
+        metodoPago: transaction.metodoPago || "",
         referencia: transaction.referencia || "",
         observacion: transaction.observacion || ""
       };
@@ -2790,6 +2720,15 @@
         const parsed = JSON.parse(raw);
         const purchases = Array.isArray(parsed) ? parsed : parsed.purchases;
         state.purchases = Array.isArray(purchases) ? purchases.map(normalizePurchase) : samplePurchases();
+        if (!Array.isArray(parsed) && parsed?.customOptions) {
+          ["proveedores", "categorias", "colores"].forEach((key) => {
+            state.customOptions[key] = uniqueOptions([
+              ...(state.customOptions[key] || []),
+              ...(Array.isArray(parsed.customOptions[key]) ? parsed.customOptions[key] : [])
+            ]);
+          });
+          saveCustomOptions();
+        }
         state.activeId = state.purchases[0]?.id || null;
       } catch (error) {
         console.error(error);
@@ -2804,7 +2743,8 @@
         app: "Gestión de Compras NEOMAR",
         version: 1,
         savedAt: new Date().toISOString(),
-        purchases: state.purchases
+        purchases: state.purchases,
+        customOptions: state.customOptions
       }));
     }
 
@@ -2829,6 +2769,7 @@
         enviada: "Enviada",
         recibida: "Recibida",
         problema: "Con problema",
+        pedido: "Pedido",
         proceso: "En proceso",
         completado: "Completado"
       }[status] || status;
@@ -2855,7 +2796,7 @@
       return [
         {
           title: "Compra realizada",
-          status: purchase.estadoCompra || "completado",
+          status: purchase.estadoCompra || "pedido",
           meta: `${dateLabel(purchase.fechaCompra)} · ${currency(purchase.totalSoles, "S/")}`
         },
         {
@@ -2896,7 +2837,7 @@
 
     function timelineProgress(purchase) {
       const steps = timelineSteps(purchase);
-      const completed = steps.filter((step) => ["completado", "recibida"].includes(step.status)).length;
+      const completed = steps.filter((step) => ["pedido", "completado", "recibida"].includes(step.status)).length;
       const hasProblem = steps.some((step) => step.status === "problema");
       return {
         completed,
@@ -2906,23 +2847,9 @@
       };
     }
 
-    function transactionTypeKey(type) {
-      const clean = String(type || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      if (clean.includes("env")) return "Pago de envío";
-      if (clean.includes("devol")) return "Devolución";
-      if (clean.includes("ajuste")) return "Ajuste";
-      if (clean.includes("otros")) return "Otros gastos";
-      if (clean.includes("compra")) return "Pago de compra";
-      return type || "Pago de compra";
-    }
-
     function transactionTotalByType(purchase, type, currencyKey = "montoSoles") {
-      const expectedType = transactionTypeKey(type);
       return purchase.transactions
-        .filter((transaction) => transactionTypeKey(transaction.tipo) === expectedType)
+        .filter((transaction) => transaction.tipo === type)
         .reduce((sum, transaction) => sum + numberValue(transaction[currencyKey]), 0);
     }
 
@@ -2944,40 +2871,9 @@
       };
     }
 
-    function isPurchaseClosed(purchase) {
-      if (!purchase) return false;
-      const breakdown = paymentBreakdown(purchase);
-      const purchaseOk = purchase.estadoCompra === "completado";
-      const shipmentOk = Boolean(purchase.envio?.fechaEnvio) && purchase.envio.estadoLinea !== "problema";
-      const arrivalOk = Boolean(purchase.llegada?.fechaLlegada) && purchase.llegada.estado === "correcto";
-      const purchasePaid = breakdown.pendingPurchase <= 0.01;
-      const shipmentPaid = breakdown.pendingShipment <= 0.01;
-      return purchaseOk && shipmentOk && arrivalOk && purchasePaid && shipmentPaid;
-    }
-
-    function activeTimelinePurchases() {
-      return state.purchases
-        .filter((purchase) => !isPurchaseClosed(purchase))
-        .sort((a, b) => String(b.fechaCompra).localeCompare(String(a.fechaCompra)));
-    }
-
-    function completedPurchases() {
-      return state.purchases
-        .filter(isPurchaseClosed)
-        .sort((a, b) => String(b.llegada?.fechaLlegada || b.updatedAt).localeCompare(String(a.llegada?.fechaLlegada || a.updatedAt)));
-    }
-
-    function timelineActivePurchase() {
-      const active = activeTimelinePurchases();
-      if (!active.length) return null;
-      const selected = getPurchase(state.activeId);
-      if (selected && !isPurchaseClosed(selected)) return selected;
-      return active[0];
-    }
-
     function timelineFilteredPurchases() {
       const query = state.timelineSearch.trim().toLowerCase();
-      return activeTimelinePurchases()
+      return [...state.purchases]
         .filter((purchase) => {
           if (!query) return true;
           const haystack = [
@@ -3000,21 +2896,18 @@
       const searchInput = $("#timelinePurchaseSearch");
       if (searchInput && document.activeElement !== searchInput) searchInput.value = state.timelineSearch;
 
-      const activePurchases = activeTimelinePurchases();
-      const activePurchase = timelineActivePurchase();
+      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
       const purchases = timelineFilteredPurchases();
-      $("#timelinePurchaseCount").textContent = `${purchases.length}/${activePurchases.length}`;
+      $("#timelinePurchaseCount").textContent = `${purchases.length}/${state.purchases.length}`;
 
       if (!purchases.length) {
-        list.innerHTML = activePurchases.length
-          ? `<div class="empty-state">No hay compras pendientes con ese filtro.</div>`
-          : `<div class="empty-state">No hay compras pendientes. Revisa el historial de compras realizadas.</div>`;
+        list.innerHTML = `<div class="empty-state">No hay compras con ese filtro.</div>`;
         return;
       }
 
       list.innerHTML = purchases.map((purchase) => {
         const status = currentStatus(purchase);
-        const isActive = purchase.id === activePurchase?.id;
+        const isActive = purchase.id === state.activeId;
         return `
           <button class="timeline-purchase-item ${isActive ? "active" : ""}" type="button" data-timeline-select="${escapeHtml(purchase.id)}">
             <span class="timeline-purchase-top">
@@ -3085,14 +2978,11 @@
 
     function renderTimelineManager(purchase) {
       if (!purchase) {
-        const hasPurchases = state.purchases.length > 0;
         return `
           <section class="timeline-stage">
             <div class="empty-state">
-              ${hasPurchases ? "No hay compras pendientes en línea de tiempo. Las compras cerradas están en el historial." : "Crea una compra para empezar a manejar su línea de tiempo."}
-              <div style="margin-top:12px;">
-                <button class="btn soft" type="button" data-tab-jump="${hasPurchases ? "history" : "form"}">${hasPurchases ? "Ver historial" : "Crear compra"}</button>
-              </div>
+              Crea una compra para empezar a manejar su línea de tiempo.
+              <div style="margin-top:12px;"><button class="btn soft" type="button" data-tab-jump="form">Crear compra</button></div>
             </div>
           </section>
         `;
@@ -3272,71 +3162,11 @@
     function renderTimelinePanel() {
       const overview = $("#timelineOverview");
       if (!overview) return;
-      const purchase = timelineActivePurchase();
+      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
+      if (state.activeId && !getPurchase(state.activeId)) state.activeId = state.purchases[0]?.id || null;
       renderTimelinePurchaseList();
-      overview.innerHTML = renderTimelineManager(purchase);
-      setTimelinePaymentDefaults($("#timelinePaymentType")?.value || "Pago de compra", purchase?.id);
-    }
-
-    function renderHistory() {
-      const purchases = completedPurchases();
-      const totalSoles = purchases.reduce((sum, purchase) => sum + investmentSoles(purchase), 0);
-      const totalDollars = purchases.reduce((sum, purchase) => sum + investmentDollars(purchase), 0);
-      const totalUnits = purchases.reduce((sum, purchase) => sum + numberValue(purchase.llegada?.cantidadRecibida), 0);
-      const metrics = [
-        ["Realizadas", purchases.length, ""],
-        ["Invertido S/", currency(totalSoles, "S/"), "accent"],
-        ["Convertido USD", currency(totalDollars, "$"), "accent"],
-        ["Unidades recibidas", totalUnits, ""]
-      ];
-
-      $("#historyMetrics").innerHTML = metrics.map(([label, value, accent]) => `
-        <article class="metric-card">
-          <span>${escapeHtml(label)}</span>
-          <strong class="${accent}">${escapeHtml(value)}</strong>
-        </article>
-      `).join("");
-
-      if (!purchases.length) {
-        $("#historyGrid").innerHTML = `
-          <div class="content-box">
-            <div class="empty-state">
-              Aún no hay compras completamente realizadas. Cuando una compra esté pagada, enviada y recibida correctamente, aparecerá aquí.
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      $("#historyGrid").innerHTML = purchases.map((purchase) => {
-        const breakdown = paymentBreakdown(purchase);
-        return `
-          <article class="history-card">
-            <div class="history-card-head">
-              <div class="history-card-title">
-                <h3>${escapeHtml(purchase.id)} · ${escapeHtml(purchase.prenda)}</h3>
-                <p>${escapeHtml(purchase.proveedor)} · ${escapeHtml(purchase.color || "Sin color")} · ${escapeHtml(purchase.talla || "Sin talla")}</p>
-              </div>
-              <span class="status-badge completado">Realizada</span>
-            </div>
-            <div class="history-card-stats">
-              <div class="history-card-stat"><span>Compra</span><strong>${dateLabel(purchase.fechaCompra)}</strong></div>
-              <div class="history-card-stat"><span>Llegada</span><strong>${dateLabel(purchase.llegada?.fechaLlegada)}</strong></div>
-              <div class="history-card-stat"><span>Pagado compra</span><strong>${currency(breakdown.purchasePaid, "S/")}</strong></div>
-              <div class="history-card-stat"><span>Pagado envío</span><strong>${currency(breakdown.shipmentPaid, "S/")}</strong></div>
-              <div class="history-card-stat"><span>Total S/</span><strong>${currency(investmentSoles(purchase), "S/")}</strong></div>
-              <div class="history-card-stat"><span>Total USD</span><strong>${currency(investmentDollars(purchase), "$")}</strong></div>
-            </div>
-            <p class="history-card-note">
-              Recibidas ${escapeHtml(purchase.llegada?.cantidadRecibida || 0)} de ${escapeHtml(purchase.llegada?.cantidadEsperada || 0)} unidades · ${arrivalLabel(purchase.llegada?.estado)}.
-            </p>
-            <div class="row-actions">
-              <button class="btn small secondary" type="button" data-view="${escapeHtml(purchase.id)}">Ver detalle</button>
-              <button class="btn small secondary" type="button" data-edit="${escapeHtml(purchase.id)}">Editar</button>
-            </div>
-          </article>
-        `;
-      }).join("");
+      overview.innerHTML = renderTimelineManager(getPurchase(state.activeId));
+      setTimelinePaymentDefaults($("#timelinePaymentType")?.value || "Pago de compra");
     }
 
     function investmentSoles(purchase) {
@@ -3348,7 +3178,7 @@
     }
 
     function transactionSign(type) {
-      return transactionTypeKey(type) === "Devolución" ? -1 : 1;
+      return type === "Devolución" ? -1 : 1;
     }
 
     function signedTransactionTotal(purchase, currencyKey) {
@@ -3516,11 +3346,10 @@
     }
 
     function renderActiveTimeline() {
-      const purchase = timelineActivePurchase();
-      $("#activeTimelineLabel").textContent = purchase ? `${purchase.id} · ${purchase.prenda}` : "Sin pendientes";
-      $("#activeTimeline").innerHTML = purchase
-        ? renderTimeline(purchase)
-        : `<div class="empty-state">No hay compras pendientes en línea de tiempo.</div>`;
+      if (!state.activeId && state.purchases.length) state.activeId = state.purchases[0].id;
+      const purchase = getPurchase(state.activeId);
+      $("#activeTimelineLabel").textContent = purchase ? `${purchase.id} · ${purchase.prenda}` : "Sin selección";
+      $("#activeTimeline").innerHTML = renderTimeline(purchase);
     }
 
     function renderTransactionPurchaseOptions() {
@@ -3547,8 +3376,7 @@
       const totalSoles = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoSoles"), 0);
       const totalDollars = entries.reduce((sum, entry) => sum + signedAmount(entry.transaction, "montoDolares"), 0);
       const countByType = entries.reduce((counts, entry) => {
-        const type = transactionTypeKey(entry.transaction.tipo);
-        counts[type] = (counts[type] || 0) + 1;
+        counts[entry.transaction.tipo] = (counts[entry.transaction.tipo] || 0) + 1;
         return counts;
       }, {});
       const metrics = [
@@ -3644,7 +3472,6 @@
       renderRecentPurchases();
       renderActiveTimeline();
       renderTimelinePanel();
-      renderHistory();
       renderTransactionPurchaseOptions();
       renderTransactionMetrics();
       renderTransactionsTable();
@@ -3784,10 +3611,10 @@
       dollarsInput.value = rate > 0 ? currency(soles / rate, "$") : currency(0, "$");
     }
 
-    function setTimelinePaymentDefaults(type = "Pago de compra", purchaseId = "") {
+    function setTimelinePaymentDefaults(type = "Pago de compra") {
       const form = $("#timelinePaymentForm");
       if (!form) return;
-      const purchase = getPurchase(purchaseId) || timelineActivePurchase();
+      const purchase = getPurchase(state.activeId);
       const controls = Array.from(form.elements);
 
       if (!purchase) {
@@ -3795,9 +3622,7 @@
         controls.forEach((control) => {
           control.disabled = true;
         });
-        $("#timelinePaymentPurchase").value = "";
-        $("#timelinePaymentMethod").value = "Transferencia";
-        $("#timelinePaymentHint").textContent = "Sin compras pendientes";
+        $("#timelinePaymentHint").textContent = "Selecciona una compra";
         syncTimelinePaymentTotal();
         return;
       }
@@ -3813,14 +3638,14 @@
       $("#timelinePaymentType").value = selectedType;
       $("#timelinePaymentSoles").value = timelineSuggestedAmount(purchase, selectedType);
       $("#timelinePaymentRate").value = timelinePaymentRateForType(purchase, selectedType);
-      $("#timelinePaymentMethod").value = "Transferencia";
+      $("#timelinePaymentMethod").value = "";
       $("#timelinePaymentReference").value = timelinePaymentReference(purchase, selectedType);
       $("#timelinePaymentObservation").value = timelinePaymentObservation(purchase, selectedType);
       syncTimelinePaymentTotal();
     }
 
     function clearTimelinePayment() {
-      setTimelinePaymentDefaults($("#timelinePaymentType").value || "Pago de compra", $("#timelinePaymentPurchase").value);
+      setTimelinePaymentDefaults($("#timelinePaymentType").value || "Pago de compra");
       $("#timelinePaymentSoles").focus();
     }
 
@@ -3844,7 +3669,7 @@
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: "Transferencia",
+        metodoPago: $("#timelinePaymentMethod").value.trim(),
         referencia: $("#timelinePaymentReference").value.trim(),
         observacion: $("#timelinePaymentObservation").value.trim()
       });
@@ -3863,7 +3688,7 @@
       closeDialog("detailDialog");
       state.activeId = purchase.id;
       renderAll();
-      setTimelinePaymentDefaults(type, purchase.id);
+      setTimelinePaymentDefaults(type);
       switchTab("timeline");
       $("#timelinePaymentForm").scrollIntoView({ behavior: "smooth", block: "start" });
       $("#timelinePaymentSoles").focus();
@@ -3878,7 +3703,7 @@
       renderActiveTimeline();
       renderTimelinePanel();
       renderTransactionsTable();
-      setTimelinePaymentDefaults("Pago de compra", purchase.id);
+      setTimelinePaymentDefaults("Pago de compra");
     }
 
     function resetPurchaseForm() {
@@ -3886,9 +3711,13 @@
       $("#purchaseEditId").value = "";
       $("#formTitle").textContent = "Registrar compra";
       fillPurchaseFixedSelects();
-      $("#cantidad").value = 1;
+      $("#cantidad").value = "";
+      $("#colorQuantity").value = 1;
+      $("#color").value = "";
+      renderColorItems([]);
+      renderSizePicker("");
       $("#tipoCambioCompra").value = DEFAULT_RATE;
-      $("#estadoCompra").value = "completado";
+      $("#estadoCompra").value = "pedido";
       $("#fechaCompra").value = today();
       syncPurchaseTotals();
     }
@@ -3899,13 +3728,15 @@
       $("#proveedor").value = purchase.proveedor;
       $("#prenda").value = purchase.prenda;
       $("#categoria").value = purchase.categoria;
-      $("#color").value = purchase.color;
       $("#talla").value = purchase.talla;
+      renderSizePicker(purchase.talla);
+      renderColorItems(normalizeColorItems(purchase));
+      $("#color").value = purchase.color;
       $("#cantidad").value = purchase.cantidad;
       $("#costoUnitarioSoles").value = purchase.costoUnitarioSoles;
       $("#tipoCambioCompra").value = purchase.tipoCambioCompra;
       $("#fechaCompra").value = purchase.fechaCompra;
-      $("#estadoCompra").value = purchase.estadoCompra || "completado";
+      $("#estadoCompra").value = purchase.estadoCompra || "pedido";
       $("#observaciones").value = purchase.observaciones;
       $("#formTitle").textContent = `Editar compra ${purchase.id}`;
       syncPurchaseTotals();
@@ -3913,7 +3744,8 @@
     }
 
     function buildPurchaseFromForm(existing) {
-      const cantidad = numberValue($("#cantidad").value);
+      const colorItems = getColorItemsFromForm().filter((item) => item.color && item.cantidad > 0);
+      const cantidad = colorItems.reduce((sum, item) => sum + numberValue(item.cantidad), 0);
       const costoUnitarioSoles = numberValue($("#costoUnitarioSoles").value);
       const tipoCambioCompra = numberValue($("#tipoCambioCompra").value) || DEFAULT_RATE;
       const totalSoles = round2(cantidad * costoUnitarioSoles);
@@ -3923,7 +3755,8 @@
         proveedor: $("#proveedor").value.trim(),
         prenda: $("#prenda").value.trim(),
         categoria: $("#categoria").value.trim(),
-        color: $("#color").value.trim(),
+        color: colorSummary(colorItems),
+        colorItems,
         talla: $("#talla").value.trim(),
         cantidad,
         costoUnitarioSoles,
@@ -3943,6 +3776,14 @@
 
     function savePurchaseFromForm(event) {
       event.preventDefault();
+      if (!getColorItemsFromForm().some((item) => item.color && item.cantidad > 0)) {
+        toast("Agrega al menos un color con cantidad.");
+        return;
+      }
+      if (!$("#talla").value.trim()) {
+        toast("Selecciona al menos una talla.");
+        return;
+      }
       const editId = $("#purchaseEditId").value;
       const existing = editId ? getPurchase(editId) : null;
       const purchase = buildPurchaseFromForm(existing);
@@ -4218,7 +4059,7 @@
         montoSoles,
         tipoCambio,
         montoDolares: round2(montoSoles / tipoCambio),
-        metodoPago: "Transferencia",
+        metodoPago: $("#transactionMethod").value.trim(),
         referencia: $("#transactionReference").value.trim(),
         observacion: $("#transactionObservation").value.trim()
       });
@@ -4228,7 +4069,6 @@
       $("#transactionForm").reset();
       $("#transactionDate").value = today();
       $("#transactionRate").value = purchase.tipoCambioCompra || DEFAULT_RATE;
-      $("#transactionMethod").value = "Transferencia";
       $("#transactionPurchase").value = purchase.id;
       syncTransactionTotal();
       renderAll();
@@ -4253,8 +4093,8 @@
         app: "Gestión de Compras NEOMAR",
         version: 1,
         exportedAt: new Date().toISOString(),
-        customOptions: state.customOptions,
-        purchases: state.purchases
+        purchases: state.purchases,
+        customOptions: state.customOptions
       };
       downloadFile(`compras-neomar-${today()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
     }
@@ -4336,19 +4176,14 @@
           const ok = confirm("La importación reemplazará las compras actuales. ¿Continuar?");
           if (!ok) return;
           state.purchases = purchases.map(normalizePurchase);
-          if (parsed.customOptions && typeof parsed.customOptions === "object") {
-            const defaults = defaultCustomOptions();
-            state.customOptions = Object.fromEntries(Object.keys(defaults).map((key) => {
-              return [key, uniqueOptions([
-                ...(state.customOptions[key] || []),
-                ...(Array.isArray(parsed.customOptions[key]) ? parsed.customOptions[key] : [])
-              ])];
-            }));
+          if (parsed.customOptions) {
+            ["proveedores", "categorias", "colores"].forEach((key) => {
+              state.customOptions[key] = uniqueOptions(Array.isArray(parsed.customOptions[key]) ? parsed.customOptions[key] : []);
+            });
             saveCustomOptions();
           }
           state.activeId = state.purchases[0]?.id || null;
           saveData();
-          fillPurchaseFixedSelects();
           renderAll();
           toast("Datos importados correctamente.");
         } catch (error) {
@@ -4375,19 +4210,24 @@
       const target = event.target.closest("button");
       if (!target) return;
 
+      if (target.dataset.addOption) {
+        addCustomOption(target.dataset.addOption);
+        return;
+      }
+
+      if (target.dataset.size) {
+        toggleSize(target.dataset.size);
+        return;
+      }
+
+      if (target.dataset.removeColor) {
+        const items = getColorItemsFromForm().filter((_, index) => index !== Number(target.dataset.removeColor));
+        renderColorItems(items);
+        return;
+      }
+
       if (target.dataset.tabJump) {
         switchTab(target.dataset.tabJump);
-        return;
-      }
-
-      if (target.dataset.addOption) {
-        addOptionFromPrompt(target.dataset.addOption, target.dataset.optionTarget);
-        return;
-      }
-
-      if (target.dataset.sizeOption) {
-        target.classList.toggle("active");
-        syncSizePickerValue();
         return;
       }
 
@@ -4454,6 +4294,13 @@
       });
       $("#purchaseForm").addEventListener("submit", savePurchaseFromForm);
       $("#clearFormBtn").addEventListener("click", resetPurchaseForm);
+      $("#addColorItemBtn").addEventListener("click", addColorItemFromControls);
+      $("#colorItems").addEventListener("input", (event) => {
+        if (event.target.matches(".color-item-quantity")) syncColorSummaryFromRows();
+      });
+      $("#colorItems").addEventListener("change", (event) => {
+        if (event.target.matches(".color-item-select")) syncColorSummaryFromRows();
+      });
       $("#shipmentForm").addEventListener("submit", saveShipment);
       $("#arrivalForm").addEventListener("submit", saveArrival);
       $("#transactionForm").addEventListener("submit", saveTransaction);
@@ -4464,13 +4311,6 @@
       $("#importJsonBtn").addEventListener("click", () => $("#importFile").click());
       $("#importFile").addEventListener("change", (event) => importJsonFile(event.target.files[0]));
       $("#restoreExamplesBtn").addEventListener("click", restoreExamples);
-      $("#addTallaBtn").addEventListener("click", addCustomTalla);
-      $("#customTallaInput").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          addCustomTalla();
-        }
-      });
       $("#timelinePurchaseSearch").addEventListener("input", (event) => {
         state.timelineSearch = event.target.value;
         renderTimelinePurchaseList();
@@ -4507,7 +4347,7 @@
         $(selector).addEventListener("input", syncTimelinePaymentTotal);
       });
       $("#timelinePaymentType").addEventListener("change", () => {
-        setTimelinePaymentDefaults($("#timelinePaymentType").value, $("#timelinePaymentPurchase").value);
+        setTimelinePaymentDefaults($("#timelinePaymentType").value);
       });
       $("#transactionPurchase").addEventListener("change", () => {
         state.activeId = $("#transactionPurchase").value;
@@ -4521,8 +4361,8 @@
     }
 
     function init() {
-      loadData();
       loadCustomOptions();
+      loadData();
       fillPurchaseFixedSelects();
       bindEvents();
       resetPurchaseForm();
