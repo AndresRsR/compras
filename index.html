@@ -1109,6 +1109,12 @@
       overflow-wrap: anywhere;
     }
 
+    .payment-dialog-note {
+      margin: -4px 0 14px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
     .timeline-management-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
@@ -1185,6 +1191,19 @@
       padding: 0;
       background: var(--surface);
       color: var(--ink);
+    }
+
+    #paymentDialog {
+      width: min(780px, calc(100vw - 24px));
+    }
+
+    #paymentDialog .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #paymentDialog .form-grid .span-2,
+    #paymentDialog .form-grid .span-4 {
+      grid-column: 1 / -1;
     }
 
     dialog::backdrop {
@@ -1410,6 +1429,96 @@
 
       .payment-dialog-summary {
         grid-template-columns: 1fr;
+      }
+
+      dialog {
+        width: calc(100vw - 12px);
+        max-height: calc(100dvh - 12px);
+        border-radius: 10px;
+      }
+
+      .dialog-shell {
+        padding: 14px;
+      }
+
+      .dialog-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: var(--surface);
+        margin: -14px -14px 12px;
+        padding: 14px;
+      }
+
+      .dialog-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        margin: 14px -14px -14px;
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .dialog-actions .btn {
+        flex: 1 1 140px;
+      }
+
+      #arrivalDialog .table-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+      }
+
+      #arrivalDialog .receipt-table,
+      #arrivalDialog .receipt-table tbody,
+      #arrivalDialog .receipt-table tr,
+      #arrivalDialog .receipt-table td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+      }
+
+      #arrivalDialog .receipt-table thead {
+        display: none;
+      }
+
+      #arrivalDialog .receipt-table tr {
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: #fffaf6;
+      }
+
+      #arrivalDialog .receipt-table td {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      #arrivalDialog .receipt-table td:last-child {
+        border-bottom: 0;
+      }
+
+      #arrivalDialog .receipt-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      #arrivalDialog .receipt-product::before {
+        margin-bottom: 8px;
+      }
+
+      #arrivalDialog .receipt-table input,
+      #arrivalDialog .receipt-table select,
+      #arrivalDialog .receipt-table textarea {
+        width: 100%;
       }
     }
 
@@ -2064,7 +2173,7 @@
         <input type="hidden" id="paymentDialogType" />
         <div class="payment-dialog-summary">
           <div class="payment-dialog-card">
-            <span>Monto por cancelar</span>
+            <span>Pendiente por cancelar</span>
             <strong id="paymentDialogDueSoles">S/ 0,00</strong>
           </div>
           <div class="payment-dialog-card">
@@ -2072,12 +2181,13 @@
             <strong id="paymentDialogDueDollars">$ 0,00</strong>
           </div>
         </div>
+        <p class="payment-dialog-note" id="paymentDialogDueNote"></p>
         <div class="form-grid">
           <div class="field">
             <label for="paymentDialogStatus">Estado del pago</label>
             <select id="paymentDialogStatus">
               <option value="cancelado">Cancelado</option>
-              <option value="pendiente">TodavÃ­a no</option>
+              <option value="pendiente">Pendiente</option>
             </select>
           </div>
           <div class="field">
@@ -2097,7 +2207,7 @@
             <input id="paymentDialogDollars" readonly />
           </div>
           <div class="field">
-            <label for="paymentDialogMethod">MÃ©todo</label>
+            <label for="paymentDialogMethod">Método</label>
             <select id="paymentDialogMethod">
               <option value="Transferencia bancaria">Transferencia bancaria</option>
               <option value="Transferencia Yape/Plin">Transferencia Yape/Plin</option>
@@ -2106,11 +2216,11 @@
           </div>
           <div class="field span-2">
             <label for="paymentDialogReference">Referencia</label>
-            <input id="paymentDialogReference" placeholder="NÃºmero de operaciÃ³n o referencia" />
+            <input id="paymentDialogReference" placeholder="Número de operación o referencia" />
           </div>
           <div class="field span-4">
-            <label for="paymentDialogObservation">ObservaciÃ³n</label>
-            <textarea id="paymentDialogObservation" placeholder="Detalle del pago o motivo si todavÃ­a no se cancela"></textarea>
+            <label for="paymentDialogObservation">Observación</label>
+            <textarea id="paymentDialogObservation" placeholder="Detalle del pago o motivo si queda pendiente"></textarea>
           </div>
         </div>
         <div class="dialog-actions" style="margin-top: 18px;">
@@ -3731,14 +3841,14 @@
     function renderArrivalItemsTable(items) {
       $("#arrivalItemsTable").innerHTML = items.map((item, index) => `
         <tr data-index="${index}" data-id="${escapeHtml(item.id)}" data-prenda="${escapeHtml(item.prenda)}" data-color="${escapeHtml(item.color)}" data-talla="${escapeHtml(item.talla)}">
-          <td class="receipt-product">
+          <td class="receipt-product" data-label="Producto">
             <strong>${escapeHtml(item.prenda)}</strong>
             <span>${escapeHtml(item.color || "Sin color")} · ${escapeHtml(item.talla || "Sin talla")}</span>
           </td>
-          <td><input class="receipt-expected" type="number" min="0" step="1" value="${escapeHtml(item.cantidadComprada)}" readonly /></td>
-          <td><input class="receipt-received" type="number" min="0" step="1" value="${escapeHtml(item.cantidadRecibida)}" /></td>
-          <td><input class="receipt-difference" value="${escapeHtml(item.diferencia)}" readonly /></td>
-          <td>
+          <td data-label="Comprado"><input class="receipt-expected" type="number" min="0" step="1" value="${escapeHtml(item.cantidadComprada)}" readonly /></td>
+          <td data-label="Recibido"><input class="receipt-received" type="number" min="0" step="1" value="${escapeHtml(item.cantidadRecibida)}" /></td>
+          <td data-label="Diferencia"><input class="receipt-difference" value="${escapeHtml(item.diferencia)}" readonly /></td>
+          <td data-label="Estado">
             <select class="receipt-status">
               <option value="correcto" ${item.estado === "correcto" ? "selected" : ""}>Correcto</option>
               <option value="faltante" ${item.estado === "faltante" ? "selected" : ""}>Faltante</option>
@@ -3746,7 +3856,7 @@
               <option value="danado" ${item.estado === "danado" ? "selected" : ""}>Dañado</option>
             </select>
           </td>
-          <td><textarea class="receipt-observation" placeholder="Observación de esta prenda, color y talla">${escapeHtml(item.observacion)}</textarea></td>
+          <td data-label="Observación"><textarea class="receipt-observation" placeholder="Observación de esta prenda, color y talla">${escapeHtml(item.observacion)}</textarea></td>
         </tr>
       `).join("");
       updateArrivalSummaryFromRows(false);
@@ -3853,6 +3963,19 @@
       }[type] || "Registrar pago";
     }
 
+    function timelinePaymentConceptTotal(purchase, type) {
+      if (type === "Pago de compra") return round2(purchase.totalSoles);
+      if (type === "Pago de envío") return round2(purchase.envio?.costoEnvioSoles);
+      return timelineSuggestedAmount(purchase, type);
+    }
+
+    function timelinePaymentPaidAmount(purchase, type) {
+      if (type === "Pago de compra" || type === "Pago de envío") {
+        return round2(transactionTotalByType(purchase, type));
+      }
+      return 0;
+    }
+
     function openPaymentDialog(type, purchaseId = state.activeId) {
       const purchase = getPurchase(purchaseId);
       if (!purchase) return;
@@ -3862,6 +3985,8 @@
       const selectedType = type || "Pago de compra";
       const rate = timelinePaymentRateForType(purchase, selectedType);
       const amount = timelineSuggestedAmount(purchase, selectedType);
+      const conceptTotal = timelinePaymentConceptTotal(purchase, selectedType);
+      const paidAmount = timelinePaymentPaidAmount(purchase, selectedType);
 
       $("#paymentDialogPurchase").value = purchase.id;
       $("#paymentDialogType").value = selectedType;
@@ -3869,7 +3994,10 @@
       $("#paymentDialogSubtitle").textContent = `${purchase.id} · ${purchase.prenda}`;
       $("#paymentDialogDueSoles").textContent = currency(amount, "S/");
       $("#paymentDialogDueDollars").textContent = rate > 0 ? currency(amount / rate, "$") : currency(0, "$");
-      $("#paymentDialogStatus").value = "cancelado";
+      $("#paymentDialogDueNote").textContent = amount > 0
+        ? `Total: ${currency(conceptTotal, "S/")} · Pagado: ${currency(paidAmount, "S/")} · Pendiente: ${currency(amount, "S/")}.`
+        : `Sin saldo pendiente. Total: ${currency(conceptTotal, "S/")} · Pagado: ${currency(paidAmount, "S/")}.`;
+      $("#paymentDialogStatus").value = amount > 0 ? "cancelado" : "pendiente";
       $("#paymentDialogDate").value = today();
       $("#paymentDialogSoles").value = amount;
       $("#paymentDialogRate").value = rate;
@@ -3960,7 +4088,7 @@
       const type = $("#paymentDialogType").value || "Pago de compra";
       if (paymentStatus === "pendiente") {
         closeDialog("paymentDialog");
-        toast("Pago marcado como todavía no cancelado.");
+        toast("Pago marcado como pendiente.");
         return;
       }
 
